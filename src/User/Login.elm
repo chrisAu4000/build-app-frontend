@@ -94,7 +94,6 @@ update msg model =
           let
             errorMessage =
               parseHttpError error
-            _ = Debug.log "login:" error 
           in
             ( { model | btnState = btnStateFailure errorMessage }
             , Cmd.none

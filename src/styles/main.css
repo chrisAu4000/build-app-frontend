@@ -24,6 +24,10 @@
 	margin-right: auto;
 }
 
+.full-height {
+	height: 100%;
+}
+
 .textarea {
 	resize: none;
 }
@@ -319,4 +323,20 @@
 
 .wizard-complete {
 	height: 100%;
+}
+
+.company-name-listitem:nth-child(2n + 1) {
+	background-color: #0273d952;
+}
+
+.company-name-listitem {
+	height: 4rem;
+}
+
+.company-name-listitem div {
+	width: 100%;
+}
+
+.button-bar i {
+	color: black;
 }

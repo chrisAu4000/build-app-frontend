@@ -1,6 +1,6 @@
 module Component.Button exposing (..)
 
-import Html exposing (Html, Attribute, a, button, i, text)
+import Html exposing (Html, Attribute, a, button, div, i, text)
 import Html.Attributes exposing (class, type_, href)
 import Html.Events exposing (onClick)
 import Component.Icon as Icon exposing (Icon, icon)
@@ -37,7 +37,9 @@ closeBtn cls msg =
     ]
     [ i [ class (icon Icon.X) ] [] ]
 
-editBtn : String -> Html msg
+type alias Url = String
+
+editBtn : Url -> Html msg
 editBtn url =
   a [ class "btn regular px0 mx-auto"
     , href url
@@ -55,6 +57,17 @@ successBtn link =
   btn
     [ class "bg-green"
     , href link ]
+
+listHeaderBtn : (Icon, String) -> Html msg
+listHeaderBtn (icn, url) =
+  div 
+    [ class "col col-4 pr2" ] 
+    [ a 
+      [ class "btn regular h2" 
+      , href url
+      ] 
+      [ i [ class (icon icn) ] [] ] 
+    ]
 
 type WebButton a
   = NotAsked a

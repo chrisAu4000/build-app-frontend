@@ -55,10 +55,10 @@ decodeAuth val =
 
 storeAuth : AuthResponse -> Cmd msg
 storeAuth auth =
-  authEncoder auth
-    |> Encode.encode 0
-    |> Just
-    |> Ports.storeSession
+    authEncoder auth
+      |> Encode.encode 0
+      |> Just
+      |> Ports.storeSession
 
 init : Value -> Location -> ( Model, Cmd Msg )
 init authVal location =

@@ -2,18 +2,9 @@ module Component.ListHeader exposing (..)
 
 import Html exposing (Html, div, a, i)
 import Html.Attributes exposing (class, href)
+import Component.Button exposing (listHeaderButton)
 import Component.Icon exposing (Icon, icon)
 
-listHeaderBtn : (Icon, String) -> Html msg
-listHeaderBtn (icn, url) =
-  div 
-    [ class "col col-4 pr2" ] 
-    [ a 
-      [ class "btn regular h2" 
-      , href url
-      ] 
-      [ i [ class (icon icn) ] [] ] 
-    ]
 
 listHeader : Maybe ( List (Icon, String) ) -> Html msg
 listHeader mbUrl =
