@@ -72,17 +72,17 @@ userDecoder : Decode.Decoder User
 userDecoder =
   decode User
     |> required "_id" Decode.string
-    |> required "username" Decode.string
     |> required "email" Decode.string
     |> required "provider" Decode.string
+    |> required "username" Decode.string
 
 userEncoder : User -> Encode.Value
 userEncoder user =
   Encode.object
     [ ("_id", Encode.string user.id)
+    , ("provider", Encode.string user.provider)
     , ("username", Encode.string user.username)
     , ("email", Encode.string user.email)
-    , ("provider", Encode.string user.provider)
     ]
 
 loginUser : UserLike a -> Cmd (WebData AuthResponse)

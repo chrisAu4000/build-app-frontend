@@ -92,14 +92,14 @@ update msg model token =
     WizardNoOp -> (model, Cmd.none)
     Submit ->
       let
-        company = Validation.pure Company
+        companyValidation = Validation.pure (Company Nothing)
           <*> validateCompanyForm model.companyDataForm
           <*> validateAdressForm model.adressForm
         cmd =
-          case company of
+          case companyValidation of
             Validation.Err _ -> Cmd.none
-            Validation.Res c ->
-              createCompany token c
+            Validation.Res company ->
+              createCompany token company
               |> Cmd.map OnAddedCompany
       in
         ( { model | index = (List.length model.steps) - 1, company = RemoteData.Loading } , cmd )

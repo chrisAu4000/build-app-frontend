@@ -13,6 +13,6 @@ validateCompanyName val =
 
 validateCompany : CompanyName -> Adress -> ValidCompany
 validateCompany name adress =
-  Validation.pure(Company)
+  Validation.pure(Company Nothing)
     <*> validateCompanyName name
     <*> validateAdress adress.street adress.houseNr adress.postCode adress.domicile

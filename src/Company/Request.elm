@@ -1,11 +1,11 @@
-module Company.Request exposing (createCompany, fetchCompanies)
+module Company.Request exposing (createCompany, fetchCompanies, removeCompany)
 
 import Adress.Request exposing (adressEncoder, adressDecoder)
 import Http
 import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (decode, required)
 import Json.Encode as Encode
-import Company.Model exposing (Company)
+import Company.Model exposing (Company, CompanyId)
 import User.Model exposing (Token)
 import RemoteData exposing (WebData)
 
@@ -15,6 +15,7 @@ apiUrl = "http://localhost:1337/company"
 companyDecoder : Decode.Decoder Company
 companyDecoder =
   decode Company
+    |> required "id" (Decode.maybe Decode.string)
     |> required "name" Decode.string
     |> required "adress" adressDecoder
 
@@ -34,17 +35,6 @@ companyEncoder company =
 authorizationHeader : Token -> Http.Header
 authorizationHeader token = Http.header "Authorization" ("Bearer " ++ token)
 
-listCompaniesRequest : Token -> Http.Request (List Company)
-listCompaniesRequest token =
-  Http.request
-    { method = "GET"
-    , headers = [ authorizationHeader token ]
-    , url = apiUrl
-    , body = Http.emptyBody
-    , expect = Http.expectJson companiesDecoder
-    , timeout = Nothing
-    , withCredentials = False
-    }
 createCompanyRequest : Token -> Company -> Http.Request Company
 createCompanyRequest token company =
   Http.request
@@ -57,6 +47,30 @@ createCompanyRequest token company =
     , withCredentials = False
     }
 
+fetchCompaniesRequest : Token -> Http.Request (List Company)
+fetchCompaniesRequest token =
+  Http.request
+    { method = "GET"
+    , headers = [ authorizationHeader token ]
+    , url = apiUrl
+    , body = Http.emptyBody
+    , expect = Http.expectJson companiesDecoder
+    , timeout = Nothing
+    , withCredentials = False
+    }
+
+removeCompanyRequest : Token -> CompanyId -> Http.Request (Company)
+removeCompanyRequest token id =
+  Http.request
+    { method = "DELETE"
+    , headers = [ authorizationHeader token ]
+    , url = apiUrl ++ "/" ++ id
+    , body = Http.emptyBody
+    , expect = Http.expectJson companyDecoder
+    , timeout = Nothing
+    , withCredentials = False
+    }
+
 createCompany : Token -> Company -> Cmd (WebData Company)
 createCompany token company =
   createCompanyRequest token company
@@ -64,5 +78,10 @@ createCompany token company =
 
 fetchCompanies : Token -> Cmd (WebData (List Company))
 fetchCompanies token =
-  listCompaniesRequest token
+  fetchCompaniesRequest token
+    |> RemoteData.sendRequest
+
+removeCompany : Token -> CompanyId -> Cmd (WebData (Company))
+removeCompany token id =
+  removeCompanyRequest token id
     |> RemoteData.sendRequest

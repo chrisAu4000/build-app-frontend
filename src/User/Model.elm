@@ -16,7 +16,5 @@ type alias User =
   { id : String
   , email : Email
   , provider : String
-  -- , role : String
   , username : Username
-  -- , companies : List Company
   }
