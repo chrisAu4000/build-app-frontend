@@ -4,7 +4,7 @@ import Company.List as CompanyList
 import Component.Button exposing (successBtn)
 import Html exposing (Html, div, h1, p, text)
 import Html.Attributes exposing (class)
-import User.Model exposing (Auth)
+import Auth.Model exposing (Auth)
 import RemoteData exposing (WebData)
 
 type alias Model =

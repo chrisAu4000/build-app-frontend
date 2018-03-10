@@ -8,7 +8,7 @@ import Company.Request exposing (createCompany)
 import Html exposing (Html, Attribute, div, button, i, form, li, ul, text)
 import Html.Attributes exposing (class, style)
 import RemoteData exposing (WebData)
-import User.Model exposing (Token)
+import Auth.Model exposing (Token)
 import Validation exposing (Validation, (<*>))
 import Wizard.Model exposing (StepState(..), CompleteMsg(..), stepToButtons, wizardButtons, mkSteplistItem, completeView)
 

@@ -1,7 +1,6 @@
 module User.Model exposing
-  ( Auth
-  , User
-  , Token
+  ( User
+  -- , Token
   , Username
   , Email
   , Password
@@ -16,12 +15,12 @@ import Json.Encode as Encode
 type alias Username = String
 type alias Password = String
 type alias Email = String
-type alias Token = String
+-- type alias Token = String
 
-type alias Auth =
-  { jwt : Token
-  , user : User
-  }
+-- type alias Auth =
+--   { jwt : Token
+--   , user : User
+--   }
 
 type alias User =
   { id : String

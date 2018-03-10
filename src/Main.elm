@@ -1,20 +1,16 @@
 module Main exposing (..)
 
+import Auth.Model exposing (Auth, decodeAuth, authDecoder, authEncoder, storeAuth, authChange)
 import Json.Decode as Decode exposing (Value)
-import Json.Encode as Encode
 import Html exposing (Html, div, h1, h3, text)
 import UrlParser exposing (Parser, parseHash, oneOf, top, s)
 import Navigation exposing (Location)
-
 import Page.NotFound as NotFoundPage
 import Page.AddPosition as AddPositionPage
 import Page.Login as LoginPage
 import Page.Registration as RegistrationPage
 import Page.Home as HomePage
 import Page.AddCompany as AddCompanyPage
-import Ports
-import User.Model exposing (User, Auth)
-import User.Request exposing (authDecoder, authEncoder)
 
 import Component.Navigation exposing (publicNavigation, privateNavigation)
 import Routing
@@ -46,19 +42,6 @@ type Msg
   | HomeMsg HomePage.Msg
   | AddCompanyMsg AddCompanyPage.Msg
   | AddPositionMsg AddPositionPage.Msg
-
-decodeAuth : Value -> Maybe Auth
-decodeAuth val =
-    Decode.decodeValue Decode.string val
-      |> Result.toMaybe
-      |> Maybe.andThen (Decode.decodeString authDecoder >> Result.toMaybe)
-
-storeAuth : Auth -> Cmd msg
-storeAuth auth =
-    authEncoder auth
-      |> Encode.encode 0
-      |> Just
-      |> Ports.storeSession
 
 init : Value -> Location -> ( Model, Cmd Msg )
 init authVal location =
@@ -179,11 +162,7 @@ update msg model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-  Sub.map SetAuth sessionChange
-
-sessionChange : Sub (Maybe Auth)
-sessionChange =
-  Ports.onSessionChange (Decode.decodeValue authDecoder >> Result.toMaybe)
+  Sub.map SetAuth authChange
 
 main : Program Value Model Msg
 main = Navigation.programWithFlags LocationChanged

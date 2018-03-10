@@ -1,5 +1,6 @@
 module User.Login exposing (..)
 
+import Auth.Model exposing (Auth)
 import Component.Button exposing 
   ( submitBtnNotAsked
   , submitBtnLoading
@@ -12,7 +13,7 @@ import Html exposing (Html, a, div, h1, li, p, ul, text)
 import Html.Attributes exposing (class, href)
 import Html.Events exposing (onInput, onSubmit)
 import Http
-import User.Model exposing (Auth, User, Username, Email, Password)
+import User.Model exposing (User, Username, Email, Password)
 import User.Request exposing (loginUser)
 import User.Validation exposing (validateEmail)
 import RemoteData exposing (WebData)

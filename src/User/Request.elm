@@ -1,20 +1,18 @@
-module User.Request exposing (RegistrationData, loginUser, registerUser, authDecoder, authEncoder)
+module User.Request exposing (RegistrationData, loginUser, registerUser)
 
 import Http
-import Json.Decode as Decode
-import Json.Decode.Pipeline exposing (decode, required)
 import Json.Encode as Encode
 import RemoteData exposing (WebData)
-import User.Model exposing (User, Auth, userDecoder, userEncoder)
+import Auth.Model exposing (Auth, authDecoder, authEncoder)
 
 apiUrl : String
 apiUrl = "http://localhost:1337"
-authUrl : String
-authUrl = "/auth/local/register"
+registrationUrl : String
+registrationUrl = apiUrl ++ "/auth/local/register"
 loginUrl : String
-loginUrl = "/auth/local"
+loginUrl = apiUrl ++ "/auth/local"
 
-type alias UserLike a =
+type alias Login a =
   { a | email : String, password : String }
 
 type alias Registration a =
@@ -31,7 +29,7 @@ type alias RegistrationData =
   , passwordVerification : String
   }
 
-loginEncoder : UserLike a -> Encode.Value
+loginEncoder : Login a -> Encode.Value
 loginEncoder userlike =
   let
     attributes =
@@ -52,34 +50,18 @@ userRegistrationEncoder data =
   in
     Encode.object attributes
 
-authDecoder : Decode.Decoder Auth
-authDecoder =
-  decode Auth
-    |> required "jwt" Decode.string
-    |> required "user" userDecoder
-
-authEncoder : Auth -> Encode.Value
-authEncoder auth =
-  let
-    attributes =
-      [ ("jwt", Encode.string auth.jwt)
-      , ("user", userEncoder auth.user)
-      ]
-  in
-    Encode.object attributes
-
-loginUser : UserLike a -> Cmd (WebData Auth)
+loginUser : Login a -> Cmd (WebData Auth)
 loginUser user =
   Http.post
-    (apiUrl ++ loginUrl)
+    loginUrl
     (loginEncoder user |> Http.jsonBody)
     authDecoder
-    |> RemoteData.sendRequest
+      |> RemoteData.sendRequest
 
 registerUser : RegistrationData -> Cmd (WebData Auth)
 registerUser user = 
   Http.post
-    (apiUrl ++ authUrl)
+    registrationUrl
     (userRegistrationEncoder user |> Http.jsonBody)
     authDecoder
       |> RemoteData.sendRequest

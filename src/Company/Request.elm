@@ -2,7 +2,7 @@ module Company.Request exposing (createCompany, fetchCompanies, removeCompany)
 
 import Http
 import Company.Model exposing (Company, CompanyId, companyEncoder, companyDecoder, companiesDecoder)
-import User.Model exposing (Token)
+import Auth.Model exposing (Token)
 import RemoteData exposing (WebData)
 
 apiUrl : String

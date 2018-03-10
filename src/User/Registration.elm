@@ -1,5 +1,5 @@
 module User.Registration exposing (Model, Msg, init, update, view)
-
+import Auth.Model exposing (Auth)
 import Component.Button exposing 
   ( submitBtnNotAsked
   , submitBtnLoading
@@ -21,7 +21,7 @@ import Debouncer.Basic as Debouncer exposing
 import Html exposing (Html, div, text)
 import Html.Attributes exposing (class, value)
 import Html.Events exposing (onSubmit, onInput, onClick)
-import User.Model exposing (Auth, User, Username, Email, Password)
+import User.Model exposing (User, Username, Email, Password)
 import User.Request exposing (RegistrationData, registerUser)
 import User.Validation exposing (validateEmail, validateUsername, validatePassword, validateVerification)
 import Validation exposing (Validation, (<*>))

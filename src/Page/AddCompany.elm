@@ -3,7 +3,7 @@ module Page.AddCompany exposing (..)
 import Company.Wizard as Wizard
 import Html exposing (Html, button, div, text)
 import Html.Attributes exposing (class,  style)
-import User.Model exposing (Auth)
+import Auth.Model exposing (Auth)
 
 type alias Model =
   { auth : Auth
