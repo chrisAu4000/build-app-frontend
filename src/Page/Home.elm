@@ -21,19 +21,9 @@ init auth =
   let
     (subMod, subCmd) = CompanyList.init auth.jwt
   in
-    ( { auth = auth 
-      , companyList = subMod
-      , listEmpty = False
-      }
-    , Cmd.map CompanyListMsg subCmd
+    ( { auth = auth, companyList = subMod, listEmpty = False }
+    , subCmd |> Cmd.map CompanyListMsg
     )
-
-companyListEmpty : WebData (List a) -> Bool
-companyListEmpty webData =
-  case webData of
-    RemoteData.Success list -> List.length list == 0
-    RemoteData.Failure err -> False
-    _ -> False
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
@@ -42,11 +32,25 @@ update msg model =
       let
         (newModel, cmd) =
           CompanyList.update subMsg model.companyList
-        isEmpty = companyListEmpty newModel.companies
+        listEmpty = companyListEmpty newModel.companies
       in 
-        ( { model | companyList = newModel, listEmpty = isEmpty }
+        ( { model | companyList = newModel, listEmpty = listEmpty }
         , cmd |> Cmd.map CompanyListMsg
         )
+
+view : Model -> Html Msg
+view model =
+  let
+    companyList =
+      CompanyList.view model.companyList |> Html.map CompanyListMsg
+  in
+    div
+      [ class "clearfix page-home flex flex-column"]
+      [ h1 [class "ml2"] [(text ("Hi " ++ model.auth.user.username))]
+      , if model.listEmpty
+        then jumbotron
+        else companyList
+      ]
 
 jumbotronStr : String
 jumbotronStr = "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet."
@@ -66,12 +70,9 @@ jumbotron =
       [ successBtn "#/company" "Start" ]
     ]
 
-view : Model -> Html Msg
-view model =
-  div
-    [ class "clearfix page-home flex flex-column"]
-    [ h1 [class "ml2"] [(text ("Hi " ++ model.auth.user.username))]
-    , if model.listEmpty
-      then jumbotron
-      else CompanyList.view model.companyList |> Html.map CompanyListMsg
-    ]
+companyListEmpty : WebData (List a) -> Bool
+companyListEmpty webData =
+  case webData of
+    RemoteData.Success list -> List.length list == 0
+    RemoteData.Failure err -> False
+    _ -> False
