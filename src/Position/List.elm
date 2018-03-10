@@ -6,7 +6,11 @@ import Html exposing (..)
 import Html.Attributes exposing (class, draggable, href, style)
 import Html.Events exposing (onClick)
 import Position.Model exposing (Position, PositionId)
-import Position.Request as Requests exposing (positionUrl, fetchPositions, deletePosition)
+import Position.Request as Requests exposing
+  ( positionUrl
+  , fetchPositions
+  , deletePosition
+  )
 import RemoteData exposing (WebData)
 
 type alias Model = WebData (List Position)

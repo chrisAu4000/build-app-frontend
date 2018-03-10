@@ -34,7 +34,6 @@ update msg model =
       let
         (subModel, subCmd) =
           (PositionForm.update subMsg model.positionForm)
-        _ = Debug.log "msg" (toString subCmd)
       in
         ( { model | positionForm = subModel }, Cmd.map FormMsg subCmd)
     ListMsg subMsg ->

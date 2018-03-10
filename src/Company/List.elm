@@ -19,17 +19,14 @@ type alias Model =
   }
 
 type Msg
-  = OnReceivedCompanies Companies
+  = OnFetch Companies
   | Remove (Maybe CompanyId)
   | OnRemove (WebData Company)
 
 init : Token -> (Model, Cmd Msg)
 init token =
-  ( { token = token
-    , companies = RemoteData.Loading 
-    }
-  , fetchCompanies token
-    |> Cmd.map OnReceivedCompanies
+  ( { token = token, companies = RemoteData.Loading }
+  , fetchCompanies token |> Cmd.map OnFetch
   )
 
 remove : Maybe CompanyId -> Companies -> Companies
@@ -39,7 +36,7 @@ remove id =
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
-    OnReceivedCompanies companies ->
+    OnFetch companies ->
       ({ model | companies = companies }, Cmd.none)
     Remove maybeId ->
       case maybeId of
@@ -85,9 +82,9 @@ listItem company =
       ]
     ]
 
-list : Model -> List (Html Msg)
-list model =
-  case model.companies of
+list : Companies -> List (Html Msg)
+list companies =
+  case companies of
     RemoteData.Loading -> [ load ]
     RemoteData.Failure err -> [ text (toString err) ]
     RemoteData.Success cms -> List.map listItem cms
@@ -99,9 +96,9 @@ view model =
     [ class "clearfix m2" ]
     [ div
       [ class "clearfix button-bar" ]
-      [ listHeaderBtn (Icon.Plus, "#/company")]
+      [ listHeaderBtn (Icon.Plus, "#/company") ]
     , ul 
       [ class "list-reset company-name-list" ]
-      ( list model )
+      ( list model.companies )
     ]
   

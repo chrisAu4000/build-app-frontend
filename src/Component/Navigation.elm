@@ -1,7 +1,7 @@
 module Component.Navigation exposing (navDefault, navBack, publicNavigation, privateNavigation)
 
 import Html exposing (Attribute, Html, a, div, i, nav, span, text)
-import Html.Attributes exposing (class)
+import Html.Attributes exposing (class, href)
 import User.Model exposing (User)
 
 type alias Headline = String
@@ -45,6 +45,10 @@ privateNavigation : Maybe User -> Html msg -> Html msg
 privateNavigation user children =
   div
     []
-    [ navDefault [ text "BuildApp private" ]
+    [ navDefault 
+    [ a 
+      [ class "white h2 text-decoration-none", href "#/home" ]
+      [ text "BuildApp" ]
+    ]
     , children
     ]

@@ -52,6 +52,5 @@ view model =
           [ text "Don't have an Account? Register "
           , a [ href "#/registration" ] [ text " here"]
           ]
-      -- , text (toString model.login)
       ]
   

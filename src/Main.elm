@@ -68,70 +68,38 @@ init authVal location =
   in
     ( { page = newPage, auth = auth }, msg)
 
-view : Model -> Html Msg
-view model =
-  let
-    user = Maybe.map .user model.auth
-  in
-    case model.page of
-      NotFound submod -> 
-        NotFoundPage.view submod
-      Login submod ->
-        div []
-          [ publicNavigation (LoginPage.view submod)
-            |> Html.map LoginMsg
-          , text (toString model)
-          ]
-      Registration submod ->
-        publicNavigation (RegistrationPage.view submod)
-          |> Html.map RegistrationMsg
-      Home submod -> 
-        privateNavigation user (HomePage.view submod)
-          |> Html.map HomeMsg
-      AddCompany submod ->
-        privateNavigation user (AddCompanyPage.view submod)
-          |> Html.map AddCompanyMsg
-      AddPosition submod ->
-        (AddPositionPage.view submod)
-          |> Html.map AddPositionMsg
-
 pageFromLocation : Model -> Location -> ( Page, Cmd Msg )
 pageFromLocation model location =
   case (parseHash Routing.matchers location) of
     Just route ->
       case route of
-        Routing.NotFound -> (NotFound NotFoundPage.initialModel, Cmd.none)
+        Routing.NotFound ->
+          (NotFound NotFoundPage.initialModel, Cmd.none)
         Routing.Login ->
-          let
-            (model, msg) = LoginPage.init
-          in
-            (Login model, Cmd.map LoginMsg msg)
+          let (model, msg) = LoginPage.init
+          in (Login model, Cmd.map LoginMsg msg)
         Routing.Registration ->
-          let
-            (model, msg) = RegistrationPage.init
-          in
-            (Registration model, Cmd.map RegistrationMsg msg)
+          let (model, msg) = RegistrationPage.init
+          in (Registration model, Cmd.map RegistrationMsg msg)
         Routing.AddPosition -> 
-          let
-            (model, msg) = AddPositionPage.init
-          in
-            (AddPosition model, Cmd.map AddPositionMsg msg)
+          let (model, msg) = AddPositionPage.init
+          in (AddPosition model, Cmd.map AddPositionMsg msg)
         Routing.Home ->
           case model.auth of
-            Nothing -> (NotFound NotFoundPage.initialModel, Cmd.none)
+            Nothing -> 
+              let (model, msg) = LoginPage.init
+              in (Login model, Cmd.map LoginMsg msg)
             Just auth -> 
-              let
-                (model, msg) = HomePage.init auth
-              in
-                (Home model, Cmd.map HomeMsg msg)
+              let (model, msg) = HomePage.init auth
+              in (Home model, Cmd.map HomeMsg msg)
         Routing.Company ->
           case model.auth of
-            Nothing -> (NotFound NotFoundPage.initialModel, Cmd.none)
+            Nothing ->
+              let (model, msg) = LoginPage.init
+              in (Login model, Cmd.map LoginMsg msg)
             Just user -> 
-              let
-                (model, msg) = AddCompanyPage.init user
-              in
-                (AddCompany model, Cmd.map AddCompanyMsg msg)
+              let (model, msg) = AddCompanyPage.init user
+              in (AddCompany model, Cmd.map AddCompanyMsg msg)
     Nothing ->
       (NotFound NotFoundPage.initialModel, Cmd.none)
 
@@ -142,11 +110,7 @@ updatePage page msg model =
       let
         (newPage, msg) = pageFromLocation model location
       in
-        case newPage of
-          AddPosition m ->
-            ( { model | page = newPage }, msg )
-          _ -> 
-            ( { model | page = newPage }, Cmd.none )
+        ({ model | page = newPage }, msg)
     (SetAuth auth, _) -> 
       let
         cmd =
@@ -160,44 +124,54 @@ updatePage page msg model =
         ( pageModel, msg, msgPage ) = LoginPage.update subMsg subMod
         newModel =
           case msgPage of
-            LoginPage.None ->
-              model
-            LoginPage.SetUser auth ->
-              { model | auth = (Just auth) }
+            LoginPage.None -> model
+            LoginPage.SetUser auth -> { model | auth = (Just auth) }
         cmd =
           case msgPage of
             LoginPage.SetUser auth ->
-              Cmd.batch
-                [ Cmd.map LoginMsg msg
-                , storeAuth auth
-                , Navigation.modifyUrl "#/home"
-                ]
-            LoginPage.None ->
-              Cmd.map LoginMsg msg
-      in
-        ( { newModel | page = Login pageModel }, cmd )
+              Cmd.batch 
+                [ Cmd.map LoginMsg msg, storeAuth auth, Navigation.modifyUrl "#/home" ]
+            LoginPage.None -> Cmd.map LoginMsg msg
+      in ({ newModel | page = Login pageModel }, cmd )
     (RegistrationMsg subMsg, Registration subMod) ->
-      let
-        ( pageModel, msg ) = RegistrationPage.update subMsg subMod
-      in
-        ( { model | page = Registration pageModel }, Cmd.map RegistrationMsg msg)
+      let ( pageModel, msg ) = RegistrationPage.update subMsg subMod
+      in ({ model | page = Registration pageModel }, Cmd.map RegistrationMsg msg)
     (HomeMsg subMsg, Home subMod) ->
       let
-        ( pageModel, msg ) = HomePage.update subMsg subMod
-      in
-        ( { model | page = Home pageModel }, Cmd.map HomeMsg msg )
+        (pageModel, msg) = HomePage.update subMsg subMod
+      in ({ model | page = Home pageModel }, Cmd.map HomeMsg msg )
     (AddCompanyMsg subMsg, AddCompany subMod) ->
       let
-        ( pageModel, msg ) = AddCompanyPage.update subMsg subMod
-      in
-        ( { model | page = AddCompany pageModel }, Cmd.map AddCompanyMsg msg )
+        (pageModel, msg) = AddCompanyPage.update subMsg subMod
+      in ({ model | page = AddCompany pageModel }, Cmd.map AddCompanyMsg msg )
     (AddPositionMsg subMsg, AddPosition subMod) ->
-      let
-        ( pageModel, msg ) = AddPositionPage.update subMsg subMod
-      in
-        ( { model | page = AddPosition pageModel }, Cmd.map AddPositionMsg msg )
+      let ( pageModel, msg ) = AddPositionPage.update subMsg subMod
+      in ({ model | page = AddPosition pageModel }, Cmd.map AddPositionMsg msg )
     (_, _) -> (model, Cmd.none)
 
+view : Model -> Html Msg
+view model =
+  let
+    user = Maybe.map .user model.auth
+  in
+    case model.page of
+      NotFound submod -> 
+        NotFoundPage.view submod
+      Login submod ->
+        publicNavigation (LoginPage.view submod)
+          |> Html.map LoginMsg
+      Registration submod ->
+        publicNavigation (RegistrationPage.view submod)
+          |> Html.map RegistrationMsg
+      Home submod -> 
+        privateNavigation user (HomePage.view submod)
+          |> Html.map HomeMsg
+      AddCompany submod ->
+        privateNavigation user (AddCompanyPage.view submod)
+          |> Html.map AddCompanyMsg
+      AddPosition submod ->
+        (AddPositionPage.view submod)
+          |> Html.map AddPositionMsg
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
