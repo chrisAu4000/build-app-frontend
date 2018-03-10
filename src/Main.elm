@@ -13,7 +13,7 @@ import Page.Registration as RegistrationPage
 import Page.Home as HomePage
 import Page.AddCompany as AddCompanyPage
 import Ports
-import User.Model exposing (User, AuthResponse)
+import User.Model exposing (User, Auth)
 import User.Request exposing (authDecoder, authEncoder)
 
 import Component.Navigation exposing (publicNavigation, privateNavigation)
@@ -29,10 +29,10 @@ type Page
 
 type alias Model =
   { page : Page 
-  , auth : Maybe AuthResponse
+  , auth : Maybe Auth
   }
 
-initialModel : Maybe AuthResponse -> Model
+initialModel : Maybe Auth -> Model
 initialModel auth =
   { page = NotFound NotFoundPage.initialModel
   , auth = auth
@@ -40,20 +40,20 @@ initialModel auth =
 
 type Msg
   = LocationChanged Location
-  | SetAuth (Maybe AuthResponse)
+  | SetAuth (Maybe Auth)
   | LoginMsg LoginPage.Msg
   | RegistrationMsg RegistrationPage.Msg
   | HomeMsg HomePage.Msg
   | AddCompanyMsg AddCompanyPage.Msg
   | AddPositionMsg AddPositionPage.Msg
 
-decodeAuth : Value -> Maybe AuthResponse
+decodeAuth : Value -> Maybe Auth
 decodeAuth val =
     Decode.decodeValue Decode.string val
       |> Result.toMaybe
       |> Maybe.andThen (Decode.decodeString authDecoder >> Result.toMaybe)
 
-storeAuth : AuthResponse -> Cmd msg
+storeAuth : Auth -> Cmd msg
 storeAuth auth =
     authEncoder auth
       |> Encode.encode 0
@@ -181,7 +181,7 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
   Sub.map SetAuth sessionChange
 
-sessionChange : Sub (Maybe AuthResponse)
+sessionChange : Sub (Maybe Auth)
 sessionChange =
   Ports.onSessionChange (Decode.decodeValue authDecoder >> Result.toMaybe)
 

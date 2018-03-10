@@ -12,7 +12,7 @@ import Html exposing (Html, a, div, h1, li, p, ul, text)
 import Html.Attributes exposing (class, href)
 import Html.Events exposing (onInput, onSubmit)
 import Http
-import User.Model exposing (AuthResponse, User, Username, Email, Password)
+import User.Model exposing (Auth, User, Username, Email, Password)
 import User.Request exposing (loginUser)
 import User.Validation exposing (validateEmail)
 import RemoteData exposing (WebData)
@@ -30,11 +30,11 @@ type Msg
   = InputEmail Email
   | InputPassword Password
   | Submit Username Password
-  | OnLoggedInUser (WebData AuthResponse)
+  | OnLoggedInUser (WebData Auth)
 
 type RootMsg
   = None
-  | SetUser AuthResponse
+  | SetUser Auth
 
 init : (Model, Cmd Msg)
 init =

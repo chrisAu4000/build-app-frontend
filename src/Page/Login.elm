@@ -3,7 +3,7 @@ module Page.Login exposing (Model, Msg, RootMsg(..), init, update, view)
 import Html exposing (Html, a, div, h1, text)
 import Html.Attributes exposing (class,  href)
 import User.Login as Login
-import User.Model exposing (AuthResponse, User)
+import User.Model exposing (Auth)
 
 type alias Model =
   { login : Login.Model }
@@ -12,7 +12,7 @@ type Msg
   = LoginMsg Login.Msg
 
 type RootMsg
-  = SetUser AuthResponse
+  = SetUser Auth
   | None
 
 init : (Model, Cmd Msg)

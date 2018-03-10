@@ -1,5 +1,5 @@
 module User.Model exposing
-  ( AuthResponse
+  ( Auth
   , User
   , Token
   , Username
@@ -18,7 +18,7 @@ type alias Password = String
 type alias Email = String
 type alias Token = String
 
-type alias AuthResponse =
+type alias Auth =
   { jwt : Token
   , user : User
   }

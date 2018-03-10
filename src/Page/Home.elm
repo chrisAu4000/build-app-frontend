@@ -4,11 +4,11 @@ import Company.List as CompanyList
 import Component.Button exposing (successBtn)
 import Html exposing (Html, div, h1, p, text)
 import Html.Attributes exposing (class)
-import User.Model exposing (AuthResponse)
+import User.Model exposing (Auth)
 import RemoteData exposing (WebData)
 
 type alias Model =
-  { auth : AuthResponse
+  { auth : Auth
   , companyList : CompanyList.Model
   , listEmpty : Bool
   }
@@ -16,7 +16,7 @@ type alias Model =
 type Msg
   = CompanyListMsg CompanyList.Msg
 
-init : AuthResponse -> (Model, Cmd Msg)
+init : Auth -> (Model, Cmd Msg)
 init auth =
   let
     (subMod, subCmd) = CompanyList.init auth.jwt

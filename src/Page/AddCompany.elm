@@ -3,10 +3,10 @@ module Page.AddCompany exposing (..)
 import Company.Wizard as Wizard
 import Html exposing (Html, button, div, text)
 import Html.Attributes exposing (class,  style)
-import User.Model exposing (AuthResponse)
+import User.Model exposing (Auth)
 
 type alias Model =
-  { auth : AuthResponse
+  { auth : Auth
   , wizard : Wizard.Model
   }
 
@@ -14,7 +14,7 @@ type Msg
   = WizardMsg Wizard.Msg
 
 
-init : AuthResponse -> (Model, Cmd Msg)
+init : Auth -> (Model, Cmd Msg)
 init auth =
   ( { auth = auth
     , wizard = Wizard.init

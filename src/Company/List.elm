@@ -9,7 +9,7 @@ import Html exposing (Html, div, li, ul, text)
 import Html.Attributes exposing (class, style)
 import Html.Events exposing (onClick)
 import RemoteData exposing (WebData)
-import User.Model exposing (AuthResponse, Token)
+import User.Model exposing (Token)
 
 type alias Companies = WebData (List Company)
 

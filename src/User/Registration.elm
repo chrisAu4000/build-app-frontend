@@ -21,7 +21,7 @@ import Debouncer.Basic as Debouncer exposing
 import Html exposing (Html, div, text)
 import Html.Attributes exposing (class, value)
 import Html.Events exposing (onSubmit, onInput, onClick)
-import User.Model exposing (AuthResponse, User, Username, Email, Password)
+import User.Model exposing (Auth, User, Username, Email, Password)
 import User.Request exposing (RegistrationData, registerUser)
 import User.Validation exposing (validateEmail, validateUsername, validatePassword, validateVerification)
 import Validation exposing (Validation, (<*>))
@@ -49,7 +49,7 @@ type Msg
   | InputPassword Password
   | InputPasswordVerification PasswordVerification
   | Submit Username Email Password PasswordVerification
-  | OnRegisteredUser (WebData AuthResponse)
+  | OnRegisteredUser (WebData Auth)
   | Debounce (Debouncer.Msg Msg)
 
 init : (Model, Cmd Msg)

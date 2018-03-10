@@ -5,7 +5,7 @@ import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (decode, required)
 import Json.Encode as Encode
 import RemoteData exposing (WebData)
-import User.Model exposing (User, AuthResponse, userDecoder, userEncoder)
+import User.Model exposing (User, Auth, userDecoder, userEncoder)
 
 apiUrl : String
 apiUrl = "http://localhost:1337"
@@ -17,7 +17,7 @@ loginUrl = "/auth/local"
 type alias UserLike a =
   { a | email : String, password : String }
 
-type alias Auth a =
+type alias Registration a =
   { a
   | username : String
   , email : String
@@ -41,7 +41,7 @@ loginEncoder userlike =
   in
     Encode.object attributes
 
-userRegistrationEncoder : Auth a -> Encode.Value
+userRegistrationEncoder : Registration a -> Encode.Value
 userRegistrationEncoder data =
   let
     attributes =
@@ -52,13 +52,13 @@ userRegistrationEncoder data =
   in
     Encode.object attributes
 
-authDecoder : Decode.Decoder AuthResponse
+authDecoder : Decode.Decoder Auth
 authDecoder =
-  decode AuthResponse
+  decode Auth
     |> required "jwt" Decode.string
     |> required "user" userDecoder
 
-authEncoder : AuthResponse -> Encode.Value
+authEncoder : Auth -> Encode.Value
 authEncoder auth =
   let
     attributes =
@@ -68,7 +68,7 @@ authEncoder auth =
   in
     Encode.object attributes
 
-loginUser : UserLike a -> Cmd (WebData AuthResponse)
+loginUser : UserLike a -> Cmd (WebData Auth)
 loginUser user =
   Http.post
     (apiUrl ++ loginUrl)
@@ -76,7 +76,7 @@ loginUser user =
     authDecoder
     |> RemoteData.sendRequest
 
-registerUser : RegistrationData -> Cmd (WebData AuthResponse)
+registerUser : RegistrationData -> Cmd (WebData Auth)
 registerUser user = 
   Http.post
     (apiUrl ++ authUrl)
