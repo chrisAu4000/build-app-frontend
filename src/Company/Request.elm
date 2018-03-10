@@ -1,36 +1,12 @@
 module Company.Request exposing (createCompany, fetchCompanies, removeCompany)
 
-import Adress.Request exposing (adressEncoder, adressDecoder)
 import Http
-import Json.Decode as Decode
-import Json.Decode.Pipeline exposing (decode, required)
-import Json.Encode as Encode
-import Company.Model exposing (Company, CompanyId)
+import Company.Model exposing (Company, CompanyId, companyEncoder, companyDecoder, companiesDecoder)
 import User.Model exposing (Token)
 import RemoteData exposing (WebData)
 
 apiUrl : String
 apiUrl = "http://localhost:1337/company"
-
-companyDecoder : Decode.Decoder Company
-companyDecoder =
-  decode Company
-    |> required "id" (Decode.maybe Decode.string)
-    |> required "name" Decode.string
-    |> required "adress" adressDecoder
-
-companiesDecoder : Decode.Decoder (List Company)
-companiesDecoder = Decode.list companyDecoder
-
-companyEncoder : Company -> Encode.Value
-companyEncoder company =
-  let
-    attributes =
-      [ ( "name", Encode.string company.name )
-      , ( "adress", adressEncoder company.adress )
-      ]
-  in
-    Encode.object attributes
 
 authorizationHeader : Token -> Http.Header
 authorizationHeader token = Http.header "Authorization" ("Bearer " ++ token)
@@ -59,7 +35,7 @@ fetchCompaniesRequest token =
     , withCredentials = False
     }
 
-removeCompanyRequest : Token -> CompanyId -> Http.Request (Company)
+removeCompanyRequest : Token -> String -> Http.Request (Company)
 removeCompanyRequest token id =
   Http.request
     { method = "DELETE"
@@ -81,7 +57,7 @@ fetchCompanies token =
   fetchCompaniesRequest token
     |> RemoteData.sendRequest
 
-removeCompany : Token -> CompanyId -> Cmd (WebData (Company))
+removeCompany : Token -> String -> Cmd (WebData (Company))
 removeCompany token id =
   removeCompanyRequest token id
     |> RemoteData.sendRequest

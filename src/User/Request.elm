@@ -5,7 +5,7 @@ import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (decode, required)
 import Json.Encode as Encode
 import RemoteData exposing (WebData)
-import User.Model exposing (User, AuthResponse)
+import User.Model exposing (User, AuthResponse, userDecoder, userEncoder)
 
 apiUrl : String
 apiUrl = "http://localhost:1337"
@@ -67,23 +67,6 @@ authEncoder auth =
       ]
   in
     Encode.object attributes
-
-userDecoder : Decode.Decoder User 
-userDecoder =
-  decode User
-    |> required "_id" Decode.string
-    |> required "email" Decode.string
-    |> required "provider" Decode.string
-    |> required "username" Decode.string
-
-userEncoder : User -> Encode.Value
-userEncoder user =
-  Encode.object
-    [ ("_id", Encode.string user.id)
-    , ("provider", Encode.string user.provider)
-    , ("username", Encode.string user.username)
-    , ("email", Encode.string user.email)
-    ]
 
 loginUser : UserLike a -> Cmd (WebData AuthResponse)
 loginUser user =

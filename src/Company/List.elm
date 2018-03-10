@@ -20,7 +20,7 @@ type alias Model =
 
 type Msg
   = OnFetch Companies
-  | Remove (Maybe CompanyId)
+  | Remove CompanyId
   | OnRemove (WebData Company)
 
 init : Token -> (Model, Cmd Msg)
@@ -29,7 +29,7 @@ init token =
   , fetchCompanies token |> Cmd.map OnFetch
   )
 
-remove : Maybe CompanyId -> Companies -> Companies
+remove : CompanyId -> Companies -> Companies
 remove id =
   RemoteData.map (List.filter (not << ((==) id) << .id))
 
