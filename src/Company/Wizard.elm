@@ -5,13 +5,12 @@ import Company.Form as CompanyForm exposing (validateCompanyForm)
 import Company.Model exposing (Company, empty)
 import Company.Request exposing (createCompany)
 import Component.ButtonBar exposing (ButtonL, ButtonR, Visibility(..), Ability(..), wizardButtons)
+import Component.Completed as Completed exposing (CompleteMsg(..))
 import Component.Wizard as Wizard_
-import Either exposing (Either(..))
 import Html exposing (Html, Attribute, div, button, i, form, li, ul, text)
 import RemoteData exposing (WebData)
 import Auth.Model exposing (Token)
 import Validation exposing (Validation, (<*>))
-import Wizard.Model as Wizard exposing (StepState(..), CompleteMsg(..), stepToButtons, mkSteplistItem, completeView)
 
 type alias Model =
   { index : Int
@@ -125,6 +124,6 @@ view model =
     ["Company", "Adress", "Complete"]
     [ (CompanyForm.view model.companyForm) |> Html.map CompanyFormMsg
     , (AdressForm.view model.adressForm) |> Html.map AdressFormMsg
-    , (completeView (CompleteMsg Submit, CompleteMsg Reset) model.company)
+    , (Completed.view (CompleteMsg Submit, CompleteMsg Reset) model.company)
     ]
     (wizardButtons (model.buttonL, model.buttonR))
