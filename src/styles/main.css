@@ -24,6 +24,14 @@
 	margin-right: auto;
 }
 
+.flex-align-middle {
+	align-self: center;
+}
+
+.text-middle {
+	text-align: center;
+}
+
 .full-height {
 	height: 100%;
 }
@@ -237,8 +245,12 @@
 }
 
 .wizard {
-	height: 50%;
 	overflow: hidden;
+	height: 500px;
+}
+
+.wizard .wizard-item {
+	height: 500px;
 }
 
 .wizard-steps-list {
@@ -246,15 +258,16 @@
 }
 
 .wizard-content {
-	height: inherit;
 	position: relative;
 	/* color: white; */
 	background-color: #0273d905;;
 }
 
 .wizard-list-slider {
-	height: inherit;
-	transition: margin-top .5s cubic-bezier(0.96, 0.02, 1, 1);
+	position: absolute;
+	left: 0;
+	right: 0;
+	transition: top .5s cubic-bezier(0.96, 0.02, 1, 1);
 }
 
 .wizard-item {
@@ -339,4 +352,28 @@
 
 .button-bar i {
 	color: black;
+}
+
+.image-input-wrapper {
+	height: 156px;
+}
+
+.image-input-wrapper div {
+}
+
+.image-input {
+	width: 0px;
+	height: 0px;
+	overflow: hidden;
+}
+
+.image-input + label {
+
+}
+
+.company-logo {
+	max-height: 114px;
+}
+.company-logo__empty {
+	height: 100%;
 }

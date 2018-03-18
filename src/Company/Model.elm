@@ -1,6 +1,7 @@
 module Company.Model exposing (..)
 
 import Adress.Model exposing (Adress, Street, HouseNr, PostCode, Domicile, adressDecoder, adressEncoder)
+-- import FileReader exposing (NativeFile)
 import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (decode, required)
 import Json.Encode as Encode
@@ -16,6 +17,7 @@ type alias ErrorMsg = String
 type alias Company =
   { id : CompanyId
   , name : CompanyName
+  -- , logo : Maybe (List NativeFile)
   , adress : Adress
   }
 
@@ -27,6 +29,7 @@ empty : Company
 empty =
   { id = Nothing
   , name = ""
+  -- , logo = Nothing
   , adress = Adress.Model.empty
   }
 

@@ -1,9 +1,13 @@
-module Company.Request exposing (createCompany, fetchCompanies, removeCompany)
+module Company.Request exposing (createCompany, fetchCompanies, removeCompany, uploadImage)
 
 import Http
 import Company.Model exposing (Company, CompanyId, companyEncoder, companyDecoder, companiesDecoder)
 import Auth.Model exposing (Token)
 import RemoteData exposing (WebData)
+
+import Json.Decode as Decode
+import FileReader exposing (NativeFile)
+import MimeType
 
 apiUrl : String
 apiUrl = "http://localhost:1337/company"
@@ -57,7 +61,39 @@ fetchCompanies token =
   fetchCompaniesRequest token
     |> RemoteData.sendRequest
 
-removeCompany : Token -> String -> Cmd (WebData (Company))
+removeCompany : Token -> String -> Cmd (WebData Company)
 removeCompany token id =
   removeCompanyRequest token id
+    |> RemoteData.sendRequest
+
+mtypeDecoder : Decode.Decoder (Maybe MimeType.MimeType)
+mtypeDecoder =
+    Decode.map MimeType.parseMimeType (Decode.field "type" Decode.string)
+
+fileDecoder : Decode.Decoder NativeFile
+fileDecoder =
+  Decode.map4 NativeFile
+      (Decode.field "name" Decode.string)
+      (Decode.field "size" Decode.int)
+      mtypeDecoder
+      Decode.value
+
+uploadImageRequest : Token -> NativeFile -> Http.Request NativeFile
+uploadImageRequest token file =
+  Http.request
+    { method = "POST"
+    , headers = [ authorizationHeader token ]
+    , url = "http://localhost:1337/upload"
+    , body = Http.multipartBody
+        [ Http.stringPart "part1" file.name
+        , FileReader.filePart "upload" file
+        ]
+    , expect = Http.expectJson fileDecoder
+    , timeout = Nothing
+    , withCredentials = False
+    }
+
+uploadImage : Token -> NativeFile -> Cmd (WebData NativeFile)
+uploadImage token file =
+  uploadImageRequest token file
     |> RemoteData.sendRequest

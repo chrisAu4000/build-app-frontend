@@ -1,7 +1,7 @@
 module Component.Form exposing (..)
 
 import Html exposing (Attribute, Html, div, input, label, li, form, text, textarea, ul)
-import Html.Attributes exposing (class, type_, required, style, value)
+import Html.Attributes exposing (class, id, for, type_, required, style, value)
 import Validation exposing (Validation)
 
 type alias Label = String
@@ -25,8 +25,14 @@ passwordInput attrs =
   input 
     ( [ type_ "password", class "input not-rounded" ] ++ attrs )
 
+fileInput : List (Attribute msg) -> List (Html msg) -> Html msg
+fileInput attrs =
+  input
+    ( [ type_ "file", class "input not-rounded" ] ++ attrs)
+
 type alias LabeledInput msg =
   Label -> List (Attribute msg) -> List (Html msg) -> Html msg
+type alias Id = String
 
 labeledTextInput : LabeledInput msg
 labeledTextInput label_ attrs _ =
@@ -34,6 +40,14 @@ labeledTextInput label_ attrs _ =
     [ class "validation-input" ]
     [ label [] [ text label_ ]
     , textInput attrs []
+    ]
+
+labeledFileInput : Id -> LabeledInput msg
+labeledFileInput id_ label_ attrs _ =
+  div
+    [ class "btn bg-blue white text-middle"]
+    [ fileInput (attrs ++ [ id id_ ]) []
+    , label [ for id_ ] [ text label_ ]
     ]
 
 labeledTextInputValidation : Validation (List String) String -> LabeledInput msg

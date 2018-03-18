@@ -1,6 +1,7 @@
 module Wizard.Model exposing (..)
 
 import Component.Button exposing (submitBtnNotAsked)
+import Component.ButtonBar exposing (ButtonL, ButtonR, Visibility(..), Ability(..))
 import Component.Icon as Icon exposing (icon)
 import Company.Model exposing (Company)
 import Html exposing (Html, Attribute, button, div, form, i, li, ul, text)
@@ -8,55 +9,56 @@ import Html.Attributes exposing (class, style)
 import Html.Events exposing (onClick, onSubmit)
 import RemoteData exposing (WebData)
 
-type alias IsValid = Bool
-type alias Step msg =
-  { lable : String
-  , view :Html msg
-  -- , model : model
-  -- , update : msg -> model -> (model, Cmd msg)
-  }
+type StepState a
+  = First IsValid
+  | Middle IsValid
+  | Last (WebData a)
 
-type alias Model msg =
-  { index : Int
-  , steps : List (Step msg)
-  }
+type alias IsValid = Bool
+type alias StepLabel = String
+type alias StepView result msg = (StepState result, msg)
+type alias Step result msg = (StepLabel, StepView result (Msg msg))
+
+type alias Model =
+  { index : Int }
+
+-- type WizardMsg 
+--   = Inc
+--   | Dec
+
+-- type StepMsg msg
+--   = StepMsg msg
 
 type Msg msg
   = Inc
   | Dec
   | StepMsg msg
 
-init : List (Step msg) -> Model msg
-init steps =
-  { index = 0
-  , steps = steps
-  }
+init : Model
+init =
+  { index = 0 }
 
--- updateCurrent : msg -> Int -> Int -> Step msg -> Step msg
--- updateCurrent msg x y step = 
---   if x == y 
---   then step 
---   else step
+-- wizardSteps : List (Step (WebData a) Msg)
+-- wizardSteps =
+--   [ ("Company", (First True, CompanyFormMsg ))
+--   ]
 
--- update : Msg msg -> Model Msg -> (Model Msg, Cmd (Msg msg))
--- update msg model =
---   case msg of
---     Inc -> ({ model | index = model.index + 1 }, Cmd.none)
---     Dec -> ({ model | index = model.index - 1 }, Cmd.none)
---     StepMsg subMsg -> 
---       let
---         newSteps = List.indexedMap (updateCurrent subMsg model.index) model.steps
---       in
---         (model, Cmd.none)
+update : Msg msg -> Model -> (msg -> Cmd Msg) -> (Model, Cmd Msg)
+update msg model updateSteps =
+  case msg of
+    StepMsg msg -> (model, updateSteps msg)
+    Inc -> ({ model | index = model.index + 1}, Cmd.none)
+    Dec -> ({ model | index = model.index - 1}, Cmd.none)
 
-view : Model msg -> Html Msg
-view model
+view : List (Step a Msg) -> Model -> Html Msg
+view steps model
   = let
-    wizardHeight =  (List.length model.steps) * 7
+    wizardHeight =  (List.length steps) * 7
     heightStr i =
       "calc(" ++ (toString i) ++ "*(" ++ (toString wizardHeight ++ "rem") ++ " + 89px))"
-    currentStep = get model.index 0 model.steps
-    
+    currentStep = get model.index 0 steps
+    stepState = currentStep |> Maybe.map (Tuple.second >> Tuple.first)
+    stepAction = currentStep |> Maybe.map (Tuple.second >> Tuple.second)
   in
     div
       [ class "flex flex-column col-12 overflow-hidden"]
@@ -64,22 +66,23 @@ view model
         [ class "wizard flex col-9 align-h-middle rounded"
         , style [ ( "height", heightStr 1 ) ]
         ]
-        [
-        -- [ div
-        --   [ class "wizard-steps-list col-3 py2 bg-blue" ]
-        --   [ ul
-        --     [ class "list list-reset steps-list" ]
-        --     (List.indexedMap (mkSteplistItem model.index) model.steps)
-        --   ]
-        -- , div
-        --   [ class "wizard-content flex flex-column col-9" ]
-        --   [ div
-        --     [ class "wizard-list-slider"
-        --     , style [ ( "margin-top", heightStr -model.index ) ]
-        --     ]
-        --     (List.indexedMap (mkWizardItem model.index) model.steps)
-        --   , (wizardButtons (stepToButtons currentStep) (model.index == (List.length model.steps) - 2))
-        --   ]
+        [ div
+          [ class "wizard-steps-list col-3 py2 bg-blue" ]
+          [ ul
+            [ class "list list-reset steps-list" ]
+            (List.indexedMap (mkSteplistItem model.index) (List.map Tuple.first steps))
+          ]
+        , div
+          [ class "wizard-content flex flex-column col-9" ]
+          [ div
+            [ class "wizard-list-slider"
+            , style [ ( "margin-top", heightStr -model.index ) ]
+            ]
+            []
+            -- ( (List.indexedMap (mkWizardItem model.index) steps)
+            -- ++ [ completeView (CompleteMsg Submit, CompleteMsg Reset) model.company ]
+            -- )
+          ]
         ]
       ]
 
@@ -107,6 +110,7 @@ type SteplistItem a
   = Active a
   | Done a
   | NotAsked a
+
 steplistItem :SteplistItem String -> Html msg
 steplistItem steplistItem =
   let
@@ -132,59 +136,14 @@ wizardItem isActive child =
       [ class ("wizard-item" ++ classes) ]
       [ child ]
 
-mkWizardItem : ActiveItem -> Index -> Step Msg -> Html Msg
+mkWizardItem : ActiveItem -> Index -> (a, Html Msg) -> Html Msg
 mkWizardItem x y step =
   let
-    child = step.view
+    child = Tuple.second step
   in
     wizardItem (x == y) child
 
-type Ability msg
-  = Enabled msg
-  | Disabled
-
-type Visibility msg
-  = Visible (Ability msg)
-  | Hidden
-
-type alias ButtonL msg = Visibility msg
-type alias ButtonR msg = Visibility msg
 type alias IsComplete = Bool
-
-wizardButtons : (ButtonL msg, ButtonR msg) -> Html msg
-wizardButtons (bl, br) =
-  let
-    toClasses : Visibility msg -> (String, List (Attribute msg))
-    toClasses b =
-      case b of
-        Hidden -> (" hidden disabled", [])
-        Visible bv ->
-          case bv of
-            Disabled -> (" disabled", [])
-            Enabled msg -> ("", [onClick msg])
-    (leftButtonClasses, leftButtonAction) = toClasses bl
-    (rightButtonClasses, rightButtonAction) = toClasses br
-  in
-    div
-      [ class "wizard-button-bar flex relative height-0"]
-      [ button 
-        ([ class ("btn circle wizard-button blue" ++ leftButtonClasses) ] ++ leftButtonAction)
-        [ i
-          [ class "icon fa fa-arrow-circle-o-left fa-4x"]
-          []
-        ]
-      , button
-        ([ class ("btn circle wizard-button right green" ++ rightButtonClasses) ] ++ rightButtonAction)
-        [ i
-          [ class "icon fa fa-check-circle-o fa-4x"]
-          []
-        ]
-      ]
-
-type StepState a
-  = First IsValid
-  | Middle IsValid
-  | Last (WebData a)
 
 stepToButtons : onBack -> 
                 onForward -> 
