@@ -1,13 +1,13 @@
-module Company.Request exposing (createCompany, fetchCompanies, removeCompany, uploadImage)
+module Company.Request exposing (createCompany, fetchCompanies, removeCompany)
 
-import Http
-import Company.Model exposing (Company, CompanyId, companyEncoder, companyDecoder, companiesDecoder)
 import Auth.Model exposing (Token)
-import RemoteData exposing (WebData)
-
-import Json.Decode as Decode
+import Company.Model exposing (Company, CompanyId, companyEncoder, companyDecoder, companiesDecoder)
+import Either exposing (Either)
 import FileReader exposing (NativeFile)
+import Http
+import Json.Decode as Decode
 import MimeType
+import RemoteData exposing (WebData)
 
 apiUrl : String
 apiUrl = "http://localhost:1337/company"
@@ -21,7 +21,21 @@ createCompanyRequest token company =
     { method = "POST"
     , headers = [ authorizationHeader token ]
     , url = apiUrl
-    , body = companyEncoder company |> Http.jsonBody
+    -- , body = companyEncoder company |> Http.jsonBody
+    , body = Http.multipartBody
+      [ Http.stringPart "name" company.name
+      , (Maybe.withDefault
+          (Http.stringPart "files" "null")
+          (company.logo
+            |> Maybe.andThen Either.leftToMaybe
+            |> Maybe.map (FileReader.filePart "files")
+          )
+        )
+      , Http.stringPart "street" company.adress.street
+      , Http.stringPart "postCode" (company.adress.postCode)
+      , Http.stringPart "houseNr" company.adress.houseNr
+      , Http.stringPart "domicile" company.adress.domicile
+      ]
     , expect = Http.expectJson companyDecoder
     , timeout = Nothing
     , withCredentials = False
@@ -77,23 +91,3 @@ fileDecoder =
       (Decode.field "size" Decode.int)
       mtypeDecoder
       Decode.value
-
-uploadImageRequest : Token -> NativeFile -> Http.Request NativeFile
-uploadImageRequest token file =
-  Http.request
-    { method = "POST"
-    , headers = [ authorizationHeader token ]
-    , url = "http://localhost:1337/upload"
-    , body = Http.multipartBody
-        [ Http.stringPart "part1" file.name
-        , FileReader.filePart "upload" file
-        ]
-    , expect = Http.expectJson fileDecoder
-    , timeout = Nothing
-    , withCredentials = False
-    }
-
-uploadImage : Token -> NativeFile -> Cmd (WebData NativeFile)
-uploadImage token file =
-  uploadImageRequest token file
-    |> RemoteData.sendRequest

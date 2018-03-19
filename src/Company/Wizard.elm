@@ -1,6 +1,7 @@
 module Company.Wizard exposing (..)
 
 import Adress.Form as AdressForm exposing (validateAdressForm)
+import Either exposing (Either)
 import Company.Form as CompanyForm exposing (validateCompanyForm)
 import Company.Model exposing (Company, empty)
 import Company.Request exposing (createCompany)
@@ -62,6 +63,9 @@ validateCompany : CompanyForm.Model -> AdressForm.Model -> Validation (List Stri
 validateCompany companyForm adressForm =
   Validation.pure (Company Nothing)
     <*> validateCompanyForm companyForm
+    <*> (companyForm.logo
+      -- |> Maybe.andThen Either.leftToMaybe
+      |> Validation.pure)
     <*> validateAdressForm adressForm
 
 update : Msg -> Model -> Token -> (Model, Cmd Msg)
@@ -97,7 +101,11 @@ update msg model token =
     OnAddedCompany company ->
       let (buttonL, buttonR) =
         case company of
-          RemoteData.Failure _ -> (Visible (Enabled Dec), Hidden)
+          RemoteData.Failure error ->
+            let
+              _ = Debug.log "ERROR" (toString error)
+            in
+              (Visible (Enabled Dec), Hidden)
           RemoteData.Success _ -> (Hidden, Hidden)
           _ -> (Hidden, Hidden)
       in

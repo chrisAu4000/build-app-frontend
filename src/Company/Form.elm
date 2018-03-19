@@ -1,8 +1,7 @@
 module Company.Form exposing (..)
-
+import Either exposing (Either(..))
 import Json.Decode as Decode
 import Company.Validation exposing (validateCompanyName)
-import Company.Request exposing (uploadImage)
 import Component.Form exposing (labeledTextInput, labeledFileInput)
 import Html exposing (Attribute, Html, div, form, input, img, text)
 import Html.Attributes exposing (class, id, value, type_, accept, src, type_)
@@ -18,7 +17,7 @@ type alias Name = String
 type alias Model =
   { name : Name
   , nameError : Validation (List String) Name
-  , logo : Maybe NativeFile
+  , logo : Maybe (Either NativeFile String)
   , imgUrl : Maybe String
   , isValid : Bool
   }
@@ -27,8 +26,8 @@ type Msg
   = InputCompanyName Name
   | InputCompanyLogo (List NativeFile)
   | OnDataUrl (Result FileReader.Error FileReader.FileContentDataUrl)
-  | Upload
-  | OnUpload (WebData NativeFile)
+  -- | Upload
+  -- | OnUpload (WebData NativeFile)
 
 init : Model
 init =
@@ -50,7 +49,7 @@ update msg model =
     InputCompanyLogo files ->
       case files of
         [ file ] ->
-          ( { model | logo = Just file }
+          ( { model | logo = Just (Left file) }
           , FileReader.readAsDataUrl file.blob
             |> Task.attempt OnDataUrl
           )
@@ -60,19 +59,19 @@ update msg model =
         |> Result.andThen (Decode.decodeValue Decode.string) of
         Err err -> (model, Cmd.none)
         Ok urlS -> ({ model | imgUrl = Just urlS }, Cmd.none)
-    Upload ->
-        ( model
-        ,  model.logo
-          |> Maybe.map (uploadImage "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1YWExYmQxMDBjZjFmMDE5ZDJmZTYyNzUiLCJpZCI6bnVsbCwiaWF0IjoxNTIwNjc1ODQ2LCJleHAiOjE1MjMyNjc4NDZ9.CgrmDf05_9fYpUUJBcTLVOQUlvc0VP_PlyQIqWKU1v8")
-          |> Maybe.map (Cmd.map OnUpload)
-          |> Maybe.withDefault Cmd.none
-        )
+    -- Upload ->
+    --     ( model
+    --     ,  model.logo
+    --       |> Maybe.map (uploadImage "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1YWExYmQxMDBjZjFmMDE5ZDJmZTYyNzUiLCJpZCI6bnVsbCwiaWF0IjoxNTIwNjc1ODQ2LCJleHAiOjE1MjMyNjc4NDZ9.CgrmDf05_9fYpUUJBcTLVOQUlvc0VP_PlyQIqWKU1v8")
+    --       |> Maybe.map (Cmd.map OnUpload)
+    --       |> Maybe.withDefault Cmd.none
+    --     )
        
-    OnUpload re ->
-      let
-        _ = Debug.log "re" (toString re)
-      in
-        ( model, Cmd.none )
+    -- OnUpload re ->
+    --   let
+    --     _ = Debug.log "re" (toString re)
+    --   in
+    --     ( model, Cmd.none )
 
 renderImg : Maybe String -> Html Msg
 renderImg url =
@@ -91,9 +90,7 @@ renderImg url =
 view : Model -> Html Msg
 view model =
   form
-    [ class "company-name-form"
-    , onSubmit Upload
-    ]
+    [ class "company-name-form" ]
     [ div
       [ class "col col-12" ]
       [ div
@@ -115,9 +112,6 @@ view model =
         ]
         []
       ]
-    , input
-        [ type_ "submit" ]
-        [ text "upload "]
     ]
 
 validateCompanyForm : Model -> Validation (List String) Name

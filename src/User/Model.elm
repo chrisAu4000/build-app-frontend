@@ -1,6 +1,6 @@
 module User.Model exposing
   ( User
-  -- , Token
+  , UserId
   , Username
   , Email
   , Password
@@ -12,6 +12,7 @@ import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (decode, required)
 import Json.Encode as Encode
 
+type alias UserId = String
 type alias Username = String
 type alias Password = String
 type alias Email = String
@@ -23,7 +24,7 @@ type alias Email = String
 --   }
 
 type alias User =
-  { id : String
+  { id : UserId
   , email : Email
   , provider : String
   , username : Username
