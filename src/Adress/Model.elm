@@ -38,7 +38,7 @@ adressEncoder adress =
   let
     attributes =
       [ ( "street", Encode.string adress.street )
-      , ( "houseNumber", Encode.string adress.houseNr )
+      , ( "houseNr", Encode.string adress.houseNr )
       , ( "postCode", Encode.string adress.postCode )
       , ( "domicile", Encode.string adress.domicile)
       ]
@@ -49,6 +49,6 @@ adressDecoder : Decode.Decoder Adress
 adressDecoder =
   decode Adress
     |> required "street" Decode.string
-    |> required "houseNumber" Decode.string
+    |> required "houseNr" Decode.string
     |> required "postCode" Decode.string
     |> required "domicile" Decode.string
