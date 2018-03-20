@@ -8,6 +8,7 @@ type Route
   | Registration
   | Home
   | Company
+  | EditCompany String
   | AddPosition
 
 matchers : Parser (Route -> a) a
@@ -18,6 +19,7 @@ matchers =
     , UrlParser.map Registration (s "registration")
     , UrlParser.map Home (s "home")
     , UrlParser.map Company (s "company")
+    , UrlParser.map EditCompany (s ("companyEdit") </> string)
     , UrlParser.map AddPosition (s "position")
     ]
 -- matchers : Parser (Route -> a) a

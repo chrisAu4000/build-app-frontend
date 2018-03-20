@@ -25,6 +25,9 @@ type alias Company =
   , adress : Adress
   }
 
+companyDefaultImg : String
+companyDefaultImg = "http://localhost:1337/img/company-placeholder.png"
+
 type alias ValidCompany = Validation (List String) Company
 
 type alias ValidCompanyName = Validation (List String) CompanyName

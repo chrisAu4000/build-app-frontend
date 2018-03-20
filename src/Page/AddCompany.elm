@@ -1,6 +1,7 @@
 module Page.AddCompany exposing (..)
 
 import Company.Wizard as Wizard
+import Company.Model exposing (CompanyId)
 import Html exposing (Html, button, div, text)
 import Html.Attributes exposing (class,  style)
 import Auth.Model exposing (Auth)
@@ -13,14 +14,14 @@ type alias Model =
 type Msg
   = WizardMsg Wizard.Msg
 
-
-init : Auth -> (Model, Cmd Msg)
-init auth =
-  ( { auth = auth
-    , wizard = Wizard.init
-    }
-    , Cmd.none
-  )
+init : Auth -> CompanyId -> (Model, Cmd Msg)
+init auth companyId =
+  let
+    (model, cmd) = Wizard.init auth.jwt companyId
+  in
+    ({ auth = auth, wizard = model }
+    , cmd |> Cmd.map WizardMsg
+    )
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =

@@ -1,4 +1,4 @@
-module Company.Request exposing (createCompany, fetchCompanies, removeCompany)
+module Company.Request exposing (createCompany, fetchCompany, fetchCompanies, removeCompany)
 
 import Auth.Model exposing (Token)
 import Company.Model exposing (Company, CompanyId, companyEncoder, companyDecoder, companiesDecoder)
@@ -53,6 +53,18 @@ fetchCompaniesRequest token =
     , withCredentials = False
     }
 
+fetchCompanyRequest : Token -> String -> Http.Request (Company)
+fetchCompanyRequest token id =
+  Http.request
+    { method = "GET"
+    , headers = [ authorizationHeader token ]
+    , url = apiUrl ++ "/" ++ id
+    , body = Http.emptyBody
+    , expect = Http.expectJson companyDecoder
+    , timeout = Nothing
+    , withCredentials = False
+    }
+
 removeCompanyRequest : Token -> String -> Http.Request (Company)
 removeCompanyRequest token id =
   Http.request
@@ -73,6 +85,11 @@ createCompany token company =
 fetchCompanies : Token -> Cmd (WebData (List Company))
 fetchCompanies token =
   fetchCompaniesRequest token
+    |> RemoteData.sendRequest
+
+fetchCompany : Token -> String -> Cmd (WebData Company)
+fetchCompany token id =
+  fetchCompanyRequest token id
     |> RemoteData.sendRequest
 
 removeCompany : Token -> String -> Cmd (WebData Company)

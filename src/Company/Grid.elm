@@ -9,6 +9,7 @@ import Either
 import Html exposing (Html, a, br, button, div, i, img, text)
 import Html.Attributes exposing (class, href, style, src)
 import Html.Events exposing (onClick)
+import Navigation
 import RemoteData exposing (WebData)
 import Auth.Model exposing (Token)
 
@@ -25,6 +26,7 @@ type Msg
   | RemoveDisclaymers
   | Remove CompanyId
   | OnRemove (WebData Company)
+  | GotoEditCompany CompanyId
 
 init : Token -> (Model, Cmd Msg)
 init token =
@@ -98,6 +100,11 @@ update msg model =
           in
             ( {model | companies = remove company.id model.companies}, Cmd.none)
         RemoteData.NotAsked -> (model, Cmd.none)
+    GotoEditCompany companyId ->
+      case companyId of
+        Nothing -> (model, Cmd.none)
+        Just id -> (model, Navigation.newUrl ("#/companyEdit/" ++ id))
+      
 
 removeOverlay : Company -> List (Html Msg)
 removeOverlay company =
@@ -135,6 +142,10 @@ gridItem (showsDisclaymer, company )=
         |> Maybe.andThen Either.rightToMaybe
         |> Maybe.withDefault "/img/company-placeholder.png"
         |> (\path -> "http://localhost:1337" ++ path)
+    companyEditUrl =
+      company.id
+        |> Maybe.map (\id -> "#/company/" ++ id)
+        |> Maybe.withDefault ""
     companyRef =
       company.id
         |> Maybe.map (\id -> [ href ("#/company/" ++ id) ])
@@ -155,17 +166,19 @@ gridItem (showsDisclaymer, company )=
       , div
         [ class ("company-button-bar overflow-hidden height-0" ++ disclaymer) ]
         [ button
-          [ class "btn circle border" ]
+          [ class "btn circle border"
+          , onClick (GotoEditCompany company.id)
+          ]
           [ i
             [ class "icon fa fa-pencil-square-o" ]
             []
           ]
         , button
-          [ class "btn circle border" ]
+          [ class "btn circle border"
+          , onClick (ShowRemoveDisclaymer company.id)
+          ]
           [ i
-            [ class "icon fa fa-trash-o"
-            , onClick (ShowRemoveDisclaymer company.id)
-            ]
+            [ class "icon fa fa-trash-o" ]
             []
           ]
         ]

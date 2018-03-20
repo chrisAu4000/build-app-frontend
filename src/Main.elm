@@ -81,7 +81,15 @@ pageFromLocation model location =
               let (model, msg) = LoginPage.init
               in (Login model, Cmd.map LoginMsg msg)
             Just user -> 
-              let (model, msg) = AddCompanyPage.init user
+              let (model, msg) = AddCompanyPage.init user Nothing
+              in (AddCompany model, Cmd.map AddCompanyMsg msg)
+        Routing.EditCompany companyId ->
+          case model.auth of
+            Nothing ->
+              let (model, msg) = LoginPage.init
+              in (Login model, Cmd.map LoginMsg msg)
+            Just user ->
+              let (model, msg) = AddCompanyPage.init user (Just companyId)
               in (AddCompany model, Cmd.map AddCompanyMsg msg)
     Nothing ->
       (NotFound NotFoundPage.initialModel, Cmd.none)

@@ -3,8 +3,8 @@ module Company.Wizard exposing (..)
 import Adress.Form as AdressForm exposing (validateAdressForm)
 import Either exposing (Either)
 import Company.Form as CompanyForm exposing (validateCompanyForm)
-import Company.Model exposing (Company, empty)
-import Company.Request exposing (createCompany)
+import Company.Model exposing (Company, CompanyId, empty, companyDefaultImg)
+import Company.Request exposing (createCompany, fetchCompany)
 import Component.ButtonBar exposing (ButtonL, ButtonR, Visibility(..), Ability(..), wizardButtons)
 import Component.Completed as Completed exposing (CompleteMsg(..))
 import Component.Wizard as Wizard_
@@ -31,15 +31,29 @@ type Msg
   | CompanyFormMsg CompanyForm.Msg
   | AdressFormMsg AdressForm.Msg
 
-init : Model
-init =
-  { index = 0
-  , buttonL = Hidden
-  , buttonR = Visible Disabled
-  , companyForm = CompanyForm.init
-  , adressForm = AdressForm.init
-  , company = RemoteData.NotAsked
-  }
+
+init : Token -> CompanyId -> (Model, Cmd Msg)
+init token companyId =
+  let
+    cmd =
+      case companyId of
+        Nothing -> Cmd.none
+        Just id -> fetchCompany token id
+          |> Cmd.map OnAddedCompany
+    buttonR =
+      case companyId of
+        Nothing -> Visible Disabled
+        Just _ -> Hidden
+  in
+    ({ index = 0
+    , buttonL = Hidden
+    , buttonR = buttonR
+    , companyForm = CompanyForm.init
+    , adressForm = AdressForm.init
+    , company = RemoteData.NotAsked
+    }
+    , cmd
+    )
 
 buttonLeft : Int -> Visibility Msg
 buttonLeft i =
@@ -67,6 +81,25 @@ validateCompany companyForm adressForm =
       -- |> Maybe.andThen Either.leftToMaybe
       |> Validation.pure)
     <*> validateAdressForm adressForm
+
+adressFromCompany : Company -> AdressForm.Model -> AdressForm.Model
+adressFromCompany company adress =
+  { adress |
+    street = company.adress.street
+  , houseNr = company.adress.houseNr
+  , postCode = company.adress.postCode
+  , domicile = company.adress.domicile
+  }
+
+companyFormCompany : Company -> CompanyForm.Model -> CompanyForm.Model
+companyFormCompany company companyForm =
+  { companyForm |
+    name = company.name
+  , logo = company.logo
+  , imgUrl = company.logo
+    |> Maybe.andThen Either.rightToMaybe
+    |> Maybe.map(\p -> "http://localhost:1337" ++ p)
+  }
 
 update : Msg -> Model -> Token -> (Model, Cmd Msg)
 update msg model token =
@@ -99,18 +132,29 @@ update msg model token =
       in
         ( { model | company = RemoteData.Loading, index = index }, cmd )
     OnAddedCompany company ->
-      let (buttonL, buttonR) =
+      let (buttonL, buttonR, companyForm, adressForm) =
         case company of
           RemoteData.Failure error ->
-            let
-              _ = Debug.log "ERROR" (toString error)
-            in
-              (Visible (Enabled Dec), Hidden)
-          RemoteData.Success _ -> (Hidden, Hidden)
-          _ -> (Hidden, Hidden)
+            (Visible (Enabled Dec), Hidden, model.companyForm, model.adressForm)
+          RemoteData.Success company ->
+            ( Hidden
+            , Hidden
+            , companyFormCompany company model.companyForm
+            , adressFromCompany company model.adressForm
+            )
+          _ ->
+            (Hidden, Hidden, model.companyForm, model.adressForm)
       in
-        ({ model | company = company, buttonL = buttonL, buttonR = buttonR }, Cmd.none)
-    Reset -> (init, Cmd.none)
+        ( { model | 
+            company = company
+          , companyForm = companyForm
+          , adressForm = adressForm
+          , buttonL = buttonL
+          , buttonR = buttonR
+          }
+        , Cmd.none
+        )
+    Reset -> init token Nothing
     CompanyFormMsg msg ->
       let
         (companyModel, companyMsg) = CompanyForm.update msg model.companyForm

@@ -10,7 +10,6 @@ import Json.Decode as Decode
 import FileReader exposing (NativeFile)
 import Task
 import Validation exposing (Validation, (<*>), toBool)
-import RemoteData exposing (WebData)
 
 type alias Name = String
 
