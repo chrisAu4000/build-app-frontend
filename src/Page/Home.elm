@@ -1,6 +1,6 @@
 module Page.Home exposing (Model, Msg, init, update, view)
 
-import Company.List as CompanyList
+import Company.Grid as CompanyGrid
 import Component.Button exposing (successBtn)
 import Html exposing (Html, div, h1, p, text)
 import Html.Attributes exposing (class)
@@ -9,17 +9,17 @@ import RemoteData exposing (WebData)
 
 type alias Model =
   { auth : Auth
-  , companyList : CompanyList.Model
+  , companyList : CompanyGrid.Model
   , listEmpty : Bool
   }
 
 type Msg
-  = CompanyListMsg CompanyList.Msg
+  = CompanyListMsg CompanyGrid.Msg
 
 init : Auth -> (Model, Cmd Msg)
 init auth =
   let
-    (subMod, subCmd) = CompanyList.init auth.jwt
+    (subMod, subCmd) = CompanyGrid.init auth.jwt
   in
     ( { auth = auth, companyList = subMod, listEmpty = False }
     , subCmd |> Cmd.map CompanyListMsg
@@ -31,7 +31,7 @@ update msg model =
     CompanyListMsg subMsg ->
       let
         (newModel, cmd) =
-          CompanyList.update subMsg model.companyList
+          CompanyGrid.update subMsg model.companyList
         listEmpty = companyListEmpty newModel.companies
       in 
         ( { model | companyList = newModel, listEmpty = listEmpty }
@@ -42,7 +42,7 @@ view : Model -> Html Msg
 view model =
   let
     companyList =
-      CompanyList.view model.companyList |> Html.map CompanyListMsg
+      CompanyGrid.view model.companyList |> Html.map CompanyListMsg
   in
     div
       [ class "clearfix page-home flex flex-column"]
