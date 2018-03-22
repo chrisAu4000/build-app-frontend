@@ -7,65 +7,47 @@ import Component.Button exposing
   , submitBtnSuccess
   , WebButton(..)
   )
-import Component.Form exposing
-  ( centeredForm
-  , labeledTextInputValidation
-  , labeledPasswordInputValidation
-  )
-import Debouncer.Basic as Debouncer exposing
-  ( Debouncer
-  , provideInput
-  , settleWhenQuietFor
-  , toDebouncer
-  )
+import Component.Form exposing (centeredForm)
+import Component.Input as Input exposing (labeledTextInputValidation, labeledPasswordInputValidation)
+import Data.ValidationInput as ValidationInput exposing (ValidationInput, (<*>))
 import Html exposing (Html, div, text)
 import Html.Attributes exposing (class, value)
 import Html.Events exposing (onSubmit, onInput, onClick)
 import User.Model exposing (User, Username, Email, Password)
 import User.Request exposing (RegistrationData, registerUser)
 import User.Validation exposing (validateEmail, validateUsername, validatePassword, validateVerification)
-import Validation exposing (Validation, (<*>))
 import RemoteData exposing (WebData)
-import Time
 
-type alias PasswordVerification = String
+type alias UsernameInput = ValidationInput String
+type alias EmailInput = ValidationInput String
+type alias PasswordInput = ValidationInput String
+type alias VerificationInput = ValidationInput String
 
 type alias Model =
-  { username : Username
-  , usernameError : Validation (List String) Username
-  , email : Email
-  , emailError : Validation (List String) Email
-  , password : Password
-  , passwordError : Validation (List String) Password
-  , passwordVerification : PasswordVerification
-  , verificationError : Validation (List String) Password
+  { username : UsernameInput
+  , email : EmailInput
+  , password : PasswordInput
+  , verification : VerificationInput
   , btnState : WebButton String
-  , debouncer : Debouncer Msg Msg
   }
 
 type Msg
   = InputUsername Username
   | InputEmail Email
   | InputPassword Password
-  | InputPasswordVerification PasswordVerification
-  | Submit Username Email Password PasswordVerification
+  | InputPasswordVerification String
+  | Submit UsernameInput EmailInput PasswordInput VerificationInput
   | OnRegisteredUser (WebData Auth)
-  | Debounce (Debouncer.Msg Msg)
 
 init : (Model, Cmd Msg)
 init =
   let
     initialModel =
-      { username = ""
-      , usernameError = Validation.Res ""
-      , email = ""
-      , emailError = Validation.Res ""
-      , password = ""
-      , passwordError = Validation.Res ""
-      , passwordVerification = ""
-      , verificationError = Validation.Res ""
+      { username = ValidationInput.Ok ""
+      , email = ValidationInput.Ok ""
+      , password = ValidationInput.Ok ""
+      , verification = ValidationInput.Ok ""
       , btnState = btnStateNotAsked
-      , debouncer = Debouncer.debounce (1 * Time.second) |> toDebouncer
       }
   in 
     (initialModel, Cmd.none)
@@ -85,95 +67,83 @@ btnStateValidationError = Failure "Validation caught you?"
 btnStateSuccess : WebButton String
 btnStateSuccess = Success "Check your Mailbox"
 
+validateUsernameInput : UsernameInput -> UsernameInput
+validateUsernameInput = (validateUsername << ValidationInput.get)
 
-validateRegistration : Username -> Email -> Password -> String -> Validation (List String) RegistrationData
+validateEmailInput : EmailInput -> EmailInput
+validateEmailInput = (validateEmail << ValidationInput.get)
+
+validatePasswordInput : PasswordInput -> PasswordInput
+validatePasswordInput = (validatePassword << ValidationInput.get)
+
+validateRegistration :
+  UsernameInput -> 
+  EmailInput -> 
+  PasswordInput -> 
+  VerificationInput -> 
+  ValidationInput RegistrationData
 validateRegistration username email password verification =
-  Validation.pure RegistrationData
-    <*> validateUsername username
-    <*> validateEmail email
-    <*> validatePassword password
-    <*> validateVerification verification password
+  ValidationInput.pure RegistrationData
+    <*> validateUsernameInput username
+    <*> validateEmailInput email
+    <*> validatePasswordInput password
+    <*> validateVerification
+      (ValidationInput.get verification)
+      (ValidationInput.get password)
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
     InputUsername username ->
       ( { model |
-          username = username
-        , usernameError = Validation.Res username
+          username = ValidationInput.Ok username
         , btnState = btnStateNotAsked
         }, Cmd.none
       )
     InputEmail email ->
       ( { model |
-          email = email
-        , emailError = Validation.Res email
+          email = ValidationInput.Ok email
         , btnState = btnStateNotAsked
         }
         , Cmd.none
       )
     InputPassword password ->
       ( { model |
-          password = password
-        , passwordError = Validation.Res password
+          password = ValidationInput.Ok password
         , btnState = btnStateNotAsked
         }
         , Cmd.none
       )
     InputPasswordVerification verification ->
       ( { model |
-          passwordVerification = verification
-        , verificationError = Validation.Res verification
+          verification = ValidationInput.Ok verification
         , btnState = btnStateNotAsked
         }
       , Cmd.none 
       )
     Submit username email password verification ->
-      let
-        unErr = validateUsername username
-        emErr = validateEmail email
-        pwErr = validatePassword password
-        vfErr = validateVerification verification password
-        requestData = validateRegistration username email password verification
-      in
-        case requestData of
-          Validation.Err msgs -> 
-            ( { model |
-                btnState = btnStateValidationError
-              , usernameError = unErr
-              , emailError = emErr
-              , passwordError = pwErr
-              , verificationError = vfErr
-              }
-            , Cmd.none 
-            )
-          Validation.Res data ->
-            ( { model | btnState = btnStateLoading }, registerUser data |> Cmd.map OnRegisteredUser )
+      case validateRegistration username email password verification of
+        ValidationInput.Err msgs val -> 
+          ( { model
+            | btnState = btnStateValidationError
+            , username = validateUsername (ValidationInput.get username)
+            , email = validateEmail (ValidationInput.get email)
+            , password = validatePassword (ValidationInput.get password)
+            , verification = validateVerification 
+              (ValidationInput.get verification) 
+              (ValidationInput.get password)
+            }
+          , Cmd.none 
+          )
+        ValidationInput.Ok data ->
+          ( { model | btnState = btnStateLoading }, registerUser data |> Cmd.map OnRegisteredUser )
     OnRegisteredUser wdUser ->
-      let
-        _ = Debug.log "register:" (toString wdUser)
-      in
-        case wdUser of
-          RemoteData.Failure _ ->
-            ( { model | btnState = btnStateNetworkError }, Cmd.none )
-          RemoteData.Success user ->
-            ( { model | btnState = btnStateSuccess }, Cmd.none )
-          _ -> ( model, Cmd.none )
-    Debounce debMsg ->
-      let
-        ( subModel, subCmd, emittedMsg ) =
-          Debouncer.update debMsg model.debouncer
-        mappedCmd =
-          Cmd.map Debounce subCmd
-        updatedModel =
-          { model | debouncer = subModel }
-      in
-        case emittedMsg of
-          Just emitted ->
-            update emitted updatedModel
-              |> Tuple.mapSecond (\cmd -> Cmd.batch [ cmd, mappedCmd ])
-          Nothing ->
-            ( updatedModel, mappedCmd )
+      case wdUser of
+        RemoteData.Failure _ ->
+          ( { model | btnState = btnStateNetworkError }, Cmd.none )
+        RemoteData.Success user ->
+          ( { model | btnState = btnStateSuccess }, Cmd.none )
+        _ -> ( model, Cmd.none )
 
 view : Model -> Html Msg
 view model =
@@ -190,27 +160,15 @@ view model =
       [ div
         [ class "flex" ]
         [ centeredForm
-          [ onSubmit (Submit model.username model.email model.password model.passwordVerification) ]
-          [ labeledTextInputValidation model.usernameError "Username" 
-            [ value model.username
-            , onInput InputUsername 
-            ]
-            []
-          , labeledTextInputValidation model.emailError "Email"
-            [ value model.email
-            , onInput InputEmail
-            ]
-            []
-          , labeledPasswordInputValidation model.passwordError "Password"
-            [ value model.password
-            , onInput InputPassword
-            ]
-            []
-          , labeledPasswordInputValidation model.verificationError "Verifiy Password" 
-            [ value model.passwordVerification
-            , onInput InputPasswordVerification 
-            ]
-            []
+          [ onSubmit (Submit model.username model.email model.password model.verification) ]
+          [ labeledTextInputValidation 
+            InputUsername "Username" model.username
+          , labeledTextInputValidation 
+            InputEmail "Email" model.email
+          , labeledPasswordInputValidation
+            InputPassword "Password" model.password
+          , labeledPasswordInputValidation 
+            InputPasswordVerification "Verifiy Password" model.verification
           , submitBtn
           ]
         ]

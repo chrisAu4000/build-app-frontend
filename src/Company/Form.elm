@@ -2,7 +2,7 @@ module Company.Form exposing (..)
 import Either exposing (Either(..))
 import Json.Decode as Decode
 import Company.Validation exposing (validateCompanyName)
-import Component.Form exposing (labeledTextInput, labeledFileInput)
+import Component.Input exposing (labeledTextInput, labeledFileInput)
 import Html exposing (Attribute, Html, div, form, input, img, text)
 import Html.Attributes exposing (class, id, value, type_, accept, src, type_)
 import Html.Events exposing (onInput, onSubmit)
@@ -100,7 +100,6 @@ view model =
           , accept ".jpg, .jpeg, .png"
           , FileReader.onFileChange InputCompanyLogo
           ]
-          []
         ]
       ]
     , div
@@ -109,7 +108,6 @@ view model =
         [ value model.name
         , onInput InputCompanyName
         ]
-        []
       ]
     ]
 

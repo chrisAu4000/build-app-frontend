@@ -4,7 +4,7 @@ import Adress.Validation exposing (validateStreet, validateHouseNr, validatePost
 import Html exposing (Html, div, form)
 import Html.Attributes exposing (class, value)
 import Html.Events exposing (onInput)
-import Component.Form exposing (labeledTextInput)
+import Component.Input exposing (labeledTextInput)
 import Validation exposing (Validation, (<*>), toBool)
 
 type alias Model =
@@ -90,7 +90,6 @@ view model =
           [ value model.street
           , onInput InputStreet
           ]
-          []
         ]
       , div
         [ class "col-4 pl1" ]
@@ -98,7 +97,6 @@ view model =
           [ value model.houseNr
           , onInput InputHouseNr
           ]
-          []
         ]
       ]
     , div
@@ -109,7 +107,6 @@ view model =
           [ value model.postCode
           , onInput InputPostCode
           ]
-          []
         ]
       , div
         [ class "col-8 pl1" ]
@@ -117,7 +114,6 @@ view model =
           [ value model.domicile
           , onInput InputDomicile
           ]
-          []
         ]
       ]
     ]

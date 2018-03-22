@@ -13,7 +13,8 @@ import Navigation
 import RemoteData exposing (WebData)
 import Auth.Model exposing (Token)
 
-type alias Companies = WebData (List (Bool, Company))
+type alias DisclaymerShown = Bool
+type alias Companies = WebData (List (DisclaymerShown, Company))
 
 type alias Model =
   { token : Token

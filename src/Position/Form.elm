@@ -1,6 +1,6 @@
 module Position.Form exposing (Model, Msg, initNew, init, update, view)
 
-import Component.Form exposing (labeledTextInput, labeledTextArea)
+import Component.Input exposing (labeledTextInput, labeledTextArea)
 import Component.Button exposing (submitBtnNotAsked, submitBtnLoading, submitBtnFailure, submitBtnSuccess)
 import Html exposing (Attribute, Html, div, form, text)
 import Html.Attributes exposing (class, value, required)
@@ -104,7 +104,6 @@ textInputUnit val =
     [ value val
     , onInput UnitInput
     ] 
-    []
 
 textAreaDescription : String -> Html Msg
 textAreaDescription val =

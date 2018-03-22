@@ -1,4 +1,4 @@
-module User.Request exposing (RegistrationData, loginUser, registerUser)
+module User.Request exposing (LoginData, RegistrationData, loginUser, registerUser)
 
 import Http
 import Json.Encode as Encode
@@ -12,8 +12,8 @@ registrationUrl = apiUrl ++ "/auth/local/register"
 loginUrl : String
 loginUrl = apiUrl ++ "/auth/local"
 
-type alias Login a =
-  { a | email : String, password : String }
+type alias LoginData =
+  { email : String, password : String }
 
 type alias Registration a =
   { a
@@ -29,7 +29,7 @@ type alias RegistrationData =
   , passwordVerification : String
   }
 
-loginEncoder : Login a -> Encode.Value
+loginEncoder : LoginData -> Encode.Value
 loginEncoder userlike =
   let
     attributes =
@@ -50,7 +50,7 @@ userRegistrationEncoder data =
   in
     Encode.object attributes
 
-loginUser : Login a -> Cmd (WebData Auth)
+loginUser : LoginData -> Cmd (WebData Auth)
 loginUser user =
   Http.post
     loginUrl

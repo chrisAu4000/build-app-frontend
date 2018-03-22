@@ -8,29 +8,31 @@ import Component.Button exposing
   , submitBtnSuccess
   , WebButton(..)
   )
-import Component.Form exposing (centeredForm, labeledTextInputValidation, labeledPasswordInput)
+import Component.Form exposing (centeredForm)
+import Component.Input exposing (labeledTextInputValidation, labeledPasswordInputValidation)
+import Data.ValidationInput as ValidationInput exposing (ValidationInput, (<*>))
 import Html exposing (Html, a, div, h1, li, p, ul, text)
 import Html.Attributes exposing (class, href)
 import Html.Events exposing (onInput, onSubmit)
 import Http
 import User.Model exposing (User, Username, Email, Password)
-import User.Request exposing (loginUser)
-import User.Validation exposing (validateEmail)
+import User.Request exposing (LoginData, loginUser)
+import User.Validation exposing (validateEmail, validatePassword)
 import RemoteData exposing (WebData)
-import Validation exposing (Validation)
+
+type alias EmailInput = ValidationInput String
+type alias PasswordInput = ValidationInput String
 
 type alias Model =
-  { email : Email
-  , emailError : Validation (List String) String
-  , password : Password
-  , passwordError : Validation (List String) String
+  { email : EmailInput
+  , password : PasswordInput
   , btnState : WebButton String
   }
 
 type Msg
   = InputEmail Email
   | InputPassword Password
-  | Submit Username Password
+  | Submit EmailInput PasswordInput
   | OnLoggedInUser (WebData Auth)
 
 type RootMsg
@@ -40,10 +42,8 @@ type RootMsg
 init : (Model, Cmd Msg)
 init =
   (
-    { email = ""
-    , emailError = Validation.Res ""
-    , password = ""
-    , passwordError = Validation.Err []
+    { email = ValidationInput.Ok ""
+    , password = ValidationInput.Ok ""
     , btnState = btnStateNotAsked
     }
   , Cmd.none
@@ -70,21 +70,30 @@ btnStateFailure = Failure
 btnStateSuccess : WebButton String
 btnStateSuccess = Success "Yey Saved Position"
 
+validateLogin : EmailInput -> PasswordInput -> ValidationInput LoginData
+validateLogin email password =
+  ValidationInput.pure LoginData
+  <*> validateEmail (ValidationInput.get email)
+  <*> validatePassword (ValidationInput.get password)
+
 update : Msg -> Model -> (Model, Cmd Msg, RootMsg)
 update msg model =
   case msg of
     InputEmail email ->
-      ( { model | email = email }, Cmd.none, None )
+      ( { model | email = ValidationInput.Ok email }, Cmd.none, None )
     InputPassword password ->
-      ( { model | password = password }, Cmd.none, None )
+      ( { model | password = ValidationInput.Ok password }, Cmd.none, None )
     Submit email password ->
-      let
-        emErr = validateEmail email
-        user = { email = email, password = password}
-      in
-        case emErr of
-          Validation.Err _ -> ( {model | emailError = emErr}, Cmd.none, None)
-          Validation.Res _ -> ( model, loginUser user |> Cmd.map OnLoggedInUser, None)
+      case validateLogin email password of
+        ValidationInput.Err errs _ -> 
+          ( { model 
+            | email = validateEmail (ValidationInput.get email)
+            , password = validatePassword (ValidationInput.get password)
+            }
+          , Cmd.none, None
+          )
+        ValidationInput.Ok user -> 
+          ( model, loginUser user |> Cmd.map OnLoggedInUser, None)
     OnLoggedInUser webUser ->
       case webUser of
         RemoteData.NotAsked ->
@@ -102,10 +111,6 @@ update msg model =
             )
         RemoteData.Success user -> ( model, Cmd.none, SetUser user )
 
--- labeledTextInputValidation model.usernameError "Username" 
---             [ value model.username
---             , onInput InputUsername 
---             ]
 view : Model -> Html Msg
 view model =
   let
@@ -122,10 +127,10 @@ view model =
         [ class "flex" ]
         [ centeredForm
           [ onSubmit (Submit model.email model.password) ]
-          [ labeledTextInputValidation model.emailError "E-Mail"
-            [ onInput InputEmail ]
-            []
-          , labeledPasswordInput "Password" [ onInput InputPassword ] []
+          [ labeledTextInputValidation
+            InputEmail "E-Mail" model.email
+          , labeledPasswordInputValidation 
+            InputPassword "Password" model.password
           , submitBtn
           ]
         ]
