@@ -1,6 +1,7 @@
 module Main exposing (..)
 
 import Auth.Model exposing (Auth, decodeAuth, authDecoder, authEncoder, storeAuth, authChange)
+import Component.Navigation exposing (publicNavigation, privateNavigation)
 import Json.Decode as Decode exposing (Value)
 import Html exposing (Html, div, h1, h3, text)
 import UrlParser exposing (Parser, parseHash, oneOf, top, s)
@@ -12,7 +13,6 @@ import Page.Registration as RegistrationPage
 import Page.Home as HomePage
 import Page.AddCompany as AddCompanyPage
 
-import Component.Navigation exposing (publicNavigation, privateNavigation)
 import Routing
 
 type Page

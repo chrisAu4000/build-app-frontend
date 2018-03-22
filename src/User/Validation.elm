@@ -12,21 +12,21 @@ import Data.ValidationInput as ValidationInput exposing
   )
 -- import Validation exposing (Validation, minLength, maxLength, isEmail, includesIntegral, equals)
 
-validateUsername : String -> ValidationInput String
+validateUsername : ValidationInput String -> ValidationInput String
 validateUsername username =
   ValidationInput.pure (\a b -> a)
     <*> minLength 4 username
     <*> maxLength 20 username
 
-validateEmail : String -> ValidationInput String
+validateEmail : ValidationInput String -> ValidationInput String
 validateEmail = isEmail
 
-validatePassword : Password -> ValidationInput String
+validatePassword : ValidationInput Password -> ValidationInput String
 validatePassword password = 
   ValidationInput.pure (\a b c -> a)
     <*> minLength 8 password
     <*> maxLength 50 password
     <*> includesIntegral password
 
-validateVerification : String -> Password -> ValidationInput String
+validateVerification : ValidationInput String -> ValidationInput Password -> ValidationInput String
 validateVerification = equals

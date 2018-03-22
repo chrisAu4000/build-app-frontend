@@ -3,7 +3,7 @@ module Adress.Model exposing (..)
 import Json.Encode as Encode
 import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (decode, required)
-import Validation exposing (Validation)
+import Data.Validation exposing (Validation)
 
 type alias Street = String
 type alias HouseNr = String

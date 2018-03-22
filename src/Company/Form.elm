@@ -9,7 +9,7 @@ import Html.Events exposing (onInput, onSubmit)
 import Json.Decode as Decode
 import FileReader exposing (NativeFile)
 import Task
-import Validation exposing (Validation, (<*>), toBool)
+import Data.Validation as Validation exposing (Validation, (<*>), toBool)
 
 type alias Name = String
 

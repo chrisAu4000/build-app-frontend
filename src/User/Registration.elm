@@ -67,15 +67,6 @@ btnStateValidationError = Failure "Validation caught you?"
 btnStateSuccess : WebButton String
 btnStateSuccess = Success "Check your Mailbox"
 
-validateUsernameInput : UsernameInput -> UsernameInput
-validateUsernameInput = (validateUsername << ValidationInput.get)
-
-validateEmailInput : EmailInput -> EmailInput
-validateEmailInput = (validateEmail << ValidationInput.get)
-
-validatePasswordInput : PasswordInput -> PasswordInput
-validatePasswordInput = (validatePassword << ValidationInput.get)
-
 validateRegistration :
   UsernameInput -> 
   EmailInput -> 
@@ -84,12 +75,10 @@ validateRegistration :
   ValidationInput RegistrationData
 validateRegistration username email password verification =
   ValidationInput.pure RegistrationData
-    <*> validateUsernameInput username
-    <*> validateEmailInput email
-    <*> validatePasswordInput password
-    <*> validateVerification
-      (ValidationInput.get verification)
-      (ValidationInput.get password)
+    <*> validateUsername username
+    <*> validateEmail email
+    <*> validatePassword password
+    <*> validateVerification verification password
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
@@ -126,12 +115,10 @@ update msg model =
         ValidationInput.Err msgs val -> 
           ( { model
             | btnState = btnStateValidationError
-            , username = validateUsername (ValidationInput.get username)
-            , email = validateEmail (ValidationInput.get email)
-            , password = validatePassword (ValidationInput.get password)
-            , verification = validateVerification 
-              (ValidationInput.get verification) 
-              (ValidationInput.get password)
+            , username = validateUsername username
+            , email = validateEmail email
+            , password = validatePassword password
+            , verification = validateVerification verification password
             }
           , Cmd.none 
           )

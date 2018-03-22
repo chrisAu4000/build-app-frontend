@@ -73,8 +73,8 @@ btnStateSuccess = Success "Yey Saved Position"
 validateLogin : EmailInput -> PasswordInput -> ValidationInput LoginData
 validateLogin email password =
   ValidationInput.pure LoginData
-  <*> validateEmail (ValidationInput.get email)
-  <*> validatePassword (ValidationInput.get password)
+  <*> validateEmail email
+  <*> validatePassword password
 
 update : Msg -> Model -> (Model, Cmd Msg, RootMsg)
 update msg model =
@@ -87,8 +87,8 @@ update msg model =
       case validateLogin email password of
         ValidationInput.Err errs _ -> 
           ( { model 
-            | email = validateEmail (ValidationInput.get email)
-            , password = validatePassword (ValidationInput.get password)
+            | email = validateEmail email
+            , password = validatePassword password
             }
           , Cmd.none, None
           )

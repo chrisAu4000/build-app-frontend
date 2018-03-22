@@ -7,7 +7,7 @@ import FileReader exposing (NativeFile)
 import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (decode, required)
 import Json.Encode as Encode
-import Validation exposing (Validation, (<*>), minLength, maxLength)
+import Data.Validation exposing (Validation, (<*>), minLength, maxLength)
 import MimeType
 
 type alias CompanyName = String

@@ -1,4 +1,4 @@
-module Validation exposing (..)
+module Data.Validation exposing (..)
 
 import Regex exposing (regex)
 
@@ -71,6 +71,12 @@ isNotEmpty val =
   if val == ""
   then Err ["This field is required."]
   else Res val
+
+includesString : String -> String -> Validation (List String) String
+includesString str val =
+  if String.contains str val
+  then Res val
+  else Err ["This input must contain '" ++ str ++ "'." ]
 
 isEmail : String -> Validation (List String) String
 isEmail val =

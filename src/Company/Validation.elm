@@ -5,13 +5,13 @@ import Adress.Validation exposing (validateAdress)
 import Either exposing (Either)
 import Company.Model exposing (Company, CompanyName, ValidCompanyName, ValidCompany)
 import FileReader exposing (NativeFile)
-import Validation exposing (Validation, (<*>), minLength, maxLength)
+import Data.Validation as Validation exposing (Validation, (<*>), pure, minLength, maxLength)
 
 type alias Logo = Maybe (Either NativeFile String)
 
 validateCompanyName : CompanyName -> ValidCompanyName
 validateCompanyName val =
-  Validation.pure (\a b -> a)
+  pure (\a b -> a)
     <*> minLength 4 val
     <*> maxLength 30 val
 
@@ -23,7 +23,7 @@ validateCompanyLogo logo =
 
 validateCompany : CompanyName -> Logo -> Adress -> ValidCompany
 validateCompany name logo adress =
-  Validation.pure(Company Nothing)
+  pure(Company Nothing)
     <*> validateCompanyName name
     <*> validateCompanyLogo logo
     <*> validateAdress adress.street adress.houseNr adress.postCode adress.domicile

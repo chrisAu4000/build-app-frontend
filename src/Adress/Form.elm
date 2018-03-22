@@ -5,7 +5,7 @@ import Html exposing (Html, div, form)
 import Html.Attributes exposing (class, value)
 import Html.Events exposing (onInput)
 import Component.Input exposing (labeledTextInput)
-import Validation exposing (Validation, (<*>), toBool)
+import Data.Validation as Validation exposing (Validation, (<*>), toBool)
 
 type alias Model =
   { street : Street

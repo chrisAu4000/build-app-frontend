@@ -11,7 +11,7 @@ import Component.Wizard as Wizard_
 import Html exposing (Html, Attribute, div, button, i, form, li, ul, text)
 import RemoteData exposing (WebData)
 import Auth.Model exposing (Token)
-import Validation exposing (Validation, (<*>))
+import Data.Validation as Validation exposing (Validation, (<*>))
 
 type alias Model =
   { index : Int
