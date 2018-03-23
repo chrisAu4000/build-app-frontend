@@ -386,7 +386,9 @@
 .image-input + label {
 
 }
-
+.company-logo-wrapper {
+	height: 156px;
+}
 .company-logo {
 	max-height: 114px;
 }

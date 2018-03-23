@@ -135,9 +135,9 @@ emptyImage =
 image : String -> Html Msg
 image url =
     div
-        [ class "flex-align-middle" ]
+        [ class "company-logo-wrapper flex-align-middle" ]
         [ img
-            [ class "company-logo"
+            [ class "company-logo align-v-middle"
             , src url
             ]
             []
