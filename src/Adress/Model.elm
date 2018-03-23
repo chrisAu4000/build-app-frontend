@@ -1,54 +1,71 @@
 module Adress.Model exposing (..)
 
-import Json.Encode as Encode
+import Data.ValidationInput as ValidationInput exposing (ValidationInput, pure)
 import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (decode, required)
-import Data.Validation exposing (Validation)
+import Json.Encode as Encode
 
-type alias Street = String
-type alias HouseNr = String
-type alias PostCode = String
-type alias Domicile = String
+
+type alias Street =
+    ValidationInput String
+
+
+type alias HouseNr =
+    ValidationInput String
+
+
+type alias PostCode =
+    ValidationInput String
+
+
+type alias Domicile =
+    ValidationInput String
+
 
 type alias Adress =
-  { street : Street
-  , houseNr : HouseNr
-  , postCode : PostCode
-  , domicile : Domicile
-  }
+    { street : Street
+    , houseNr : HouseNr
+    , postCode : PostCode
+    , domicile : Domicile
+    }
 
-type alias ValidAdress = Validation (List String) Adress
 
 empty : Adress
 empty =
-  { street = ""
-  , houseNr = ""
-  , postCode = ""
-  , domicile = ""
-  }
+    { street = ValidationInput.Ok ""
+    , houseNr = ValidationInput.Ok ""
+    , postCode = ValidationInput.Ok ""
+    , domicile = ValidationInput.Ok ""
+    }
+
 
 encodeMaybe : (a -> Encode.Value) -> Maybe a -> Encode.Value
 encodeMaybe f mb =
-  case mb of
-    Nothing -> Encode.null
-    Just a -> f a
+    case mb of
+        Nothing ->
+            Encode.null
+
+        Just a ->
+            f a
+
 
 adressEncoder : Adress -> Encode.Value
 adressEncoder adress =
-  let
-    attributes =
-      [ ( "street", Encode.string adress.street )
-      , ( "houseNr", Encode.string adress.houseNr )
-      , ( "postCode", Encode.string adress.postCode )
-      , ( "domicile", Encode.string adress.domicile)
-      ]
-  in
+    let
+        attributes =
+            [ ( "street", Encode.string (ValidationInput.get adress.street) )
+            , ( "houseNr", Encode.string (ValidationInput.get adress.houseNr) )
+            , ( "postCode", Encode.string (ValidationInput.get adress.postCode) )
+            , ( "domicile", Encode.string (ValidationInput.get adress.domicile) )
+            ]
+    in
     Encode.object attributes
+
 
 adressDecoder : Decode.Decoder Adress
 adressDecoder =
-  decode Adress
-    |> required "street" Decode.string
-    |> required "houseNr" Decode.string
-    |> required "postCode" Decode.string
-    |> required "domicile" Decode.string
+    decode (\street houseNr postCode domicile -> Adress (pure street) (pure houseNr) (pure postCode) (pure domicile))
+        |> required "street" Decode.string
+        |> required "houseNr" Decode.string
+        |> required "postCode" Decode.string
+        |> required "domicile" Decode.string

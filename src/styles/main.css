@@ -47,6 +47,12 @@
 	resize: none;
 }
 
+.shadow {
+	-webkit-box-shadow: 2px 2px 15px -5px rgba(0,0,0,0.75);
+	-moz-box-shadow: 2px 2px 15px -5px rgba(0,0,0,0.75);
+	box-shadow: 2px 2px 15px -5px rgba(0,0,0,0.75);
+}
+
 .sidebar-btn:focus {
 	border: none;
 	box-shadow: none;
@@ -188,7 +194,9 @@
 .error-message-wrapper {
 	display: flex;
 	position: absolute;
-	top: -1.5rem;
+	background-color: #fff;
+	top: auto;
+	bottom: 50px;
 	left: 0;
 	right: 0;
 	opacity: 0;
@@ -197,10 +205,12 @@
 }
 
 .error-message {
-	background-color: #fff;
 	margin: 0 auto;
 	padding: .4rem;
-	border: .2rem solid #ccc;
+}
+
+.error-message li {
+	overflow: hidden
 }
 
 .box-arrow {
@@ -219,14 +229,13 @@
 	transition: .3s opacity, .3s visibility;
 }
 
-.validation-input:hover ~ .error-message-wrapper {
-	opacity: 1;
-	visibility: visible;
-}
+.error-message-wrapper:hover,
+.validation-input:hover ~ .error-message-wrapper,
 .validation-input:hover ~ .error-message-wrapper .box-arrow {
 	opacity: 1;
 	visibility: visible;
 }
+
 
 .jumbotron {
 	background-image: url("http://localhost:1337/img/position-paper.jpg");
@@ -527,7 +536,6 @@
 
 .remove-disclaymer--buttons .btn {
 	width: calc(50% - .25rem);
-	
 }
 
 .remove-disclaymer--buttons .btn:first-of-type {

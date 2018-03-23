@@ -1,37 +1,43 @@
 module Adress.Validation exposing (..)
 
-import Adress.Model exposing (Adress, Street, HouseNr, PostCode, Domicile)
-import Data.Validation exposing (Validation, (<*>), lengthEquals, pure, isNotEmpty, isInt, maxLength, minLength)
+-- import Data.Validation exposing (Validation, (<*>), lengthEquals, pure, isNotEmpty, isInt, maxLength, minLength)
 
-validateStreet : Street -> Validation (List  String) Street
+import Adress.Model exposing (Adress, Domicile, HouseNr, PostCode, Street)
+import Data.ValidationInput as ValidationInput exposing ((<*>), ValidationInput, isInt, lengthEquals, maxLength, minLength, pure)
+
+
+validateStreet : Street -> Street
 validateStreet val =
-  pure (\a b -> a)
-    <*> minLength 4 val
-    <*> maxLength 30 val
+    pure (\a b -> a)
+        <*> minLength 4 val
+        <*> maxLength 30 val
 
-validateHouseNr : HouseNr -> Validation (List String) HouseNr
+
+validateHouseNr : HouseNr -> HouseNr
 validateHouseNr val =
-  pure (\a b -> a)
-    <*> isNotEmpty val
-    <*> maxLength 12 val
+    pure (\a b -> a)
+        <*> minLength 1 val
+        <*> maxLength 12 val
 
-validatePostCode : PostCode -> Validation (List String) PostCode
+
+validatePostCode : PostCode -> PostCode
 validatePostCode val =
-  pure (\a b -> a)
-    <*> lengthEquals 5 val
-    <*> isInt val
+    pure (\a b -> a)
+        <*> lengthEquals 5 val
+        <*> isInt val
 
-validateDomicile : Domicile -> Validation (List String) Domicile
+
+validateDomicile : Domicile -> Domicile
 validateDomicile val =
-  pure (\a b -> a)
-    <*> minLength 4 val
-    <*> maxLength 30 val
+    pure (\a b -> a)
+        <*> minLength 4 val
+        <*> maxLength 30 val
 
-validateAdress : Street -> HouseNr -> PostCode -> Domicile -> Validation (List String) Adress
-validateAdress street houseNr postCode domicile = 
-  pure Adress
-    <*> validateStreet street
-    <*> validateHouseNr houseNr
-    <*> validatePostCode postCode
-    <*> validateDomicile domicile
 
+validateAdress : Adress -> Adress
+validateAdress adress =
+    Adress
+        (validateStreet adress.street)
+        (validateHouseNr adress.houseNr)
+        (validatePostCode adress.postCode)
+        (validateDomicile adress.domicile)

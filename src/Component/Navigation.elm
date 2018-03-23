@@ -1,54 +1,63 @@
-module Component.Navigation exposing (navDefault, navBack, publicNavigation, privateNavigation)
+module Component.Navigation exposing (navBack, navDefault, privateNavigation, publicNavigation)
 
 import Html exposing (Attribute, Html, a, div, i, nav, span, text)
 import Html.Attributes exposing (class, href)
 import User.Model exposing (User)
 
-type alias Headline = String
+
+type alias Headline =
+    String
+
 
 headline : Headline -> Html msg
 headline h1 =
-  span [ class "navbar-headline" ] [ text h1 ]
+    span [ class "navbar-headline" ] [ text h1 ]
+
 
 headlineBtn : Headline -> List (Attribute msg) -> Html msg
 headlineBtn h1 attrs =
-  a 
-    ([ class "btn regular navbar-headline" ] ++ attrs)
-    [ i [ class "fa fa-chevron-left mr1" ] [], text h1 ]
+    a
+        ([ class "btn regular navbar-headline" ] ++ attrs)
+        [ i [ class "fa fa-chevron-left mr1" ] [], text h1 ]
+
 
 navigation : List (Html msg) -> Html msg
 navigation children =
-  nav
-    [ class "navbar clearfix white bg-blue flex" ]
-    [ div 
-      [class "ml2 align-v-middle"] 
-      children
-    ]
+    nav
+        [ class "navbar clearfix white bg-blue flex" ]
+        [ div
+            [ class "ml2 align-v-middle" ]
+            children
+        ]
 
-navDefault : (List (Html msg)) -> Html msg
-navDefault h1 = 
-  navigation h1
+
+navDefault : List (Html msg) -> Html msg
+navDefault h1 =
+    navigation h1
+
 
 navBack : Headline -> List (Attribute msg) -> Html msg
 navBack h1 attrs =
-  navigation [ headlineBtn h1 attrs ]
+    navigation [ headlineBtn h1 attrs ]
+
 
 publicNavigation : Html msg -> Html msg
 publicNavigation children =
-  div
-    []
-    [ navDefault [ text "BuildApp" ]
-    , children
-    ]
+    div
+        []
+        [ navDefault [ text "BuildApp" ]
+        , children
+        ]
+
 
 privateNavigation : Maybe User -> Html msg -> Html msg
 privateNavigation user children =
-  div
-    []
-    [ navDefault 
-    [ a 
-      [ class "white h2 text-decoration-none", href "#/home" ]
-      [ text "BuildApp" ]
-    ]
-    , children
-    ]
+    div
+        []
+        [ navDefault
+            [ a
+                [ class "white h2 text-decoration-none", href "#/home" ]
+                [ text "BuildApp" ]
+            ]
+        , children
+        ]
