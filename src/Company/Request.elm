@@ -1,9 +1,9 @@
-module Company.Request exposing (createCompany, fetchCompanies, fetchCompany, removeCompany)
+module Company.Request exposing (createCompany, fetchCompanies, fetchCompany, removeCompany, updateCompany)
 
 import Auth.Model exposing (Token)
 import Company.Model exposing (Company, CompanyId, companiesDecoder, companyDecoder, companyEncoder)
 import Data.ValidationInput as ValidationInput
-import Either exposing (leftToMaybe)
+import Either exposing (Either(..), leftToMaybe)
 import FileReader exposing (NativeFile)
 import Http
 import Json.Decode as Decode
@@ -41,6 +41,56 @@ createCompanyRequest token company =
                 , Http.stringPart "houseNr" (ValidationInput.get company.adress.houseNr)
                 , Http.stringPart "domicile" (ValidationInput.get company.adress.domicile)
                 ]
+        , expect = Http.expectJson companyDecoder
+        , timeout = Nothing
+        , withCredentials = False
+        }
+
+
+updateCompanyRequest : Token -> String -> Company -> Http.Request Company
+updateCompanyRequest token id company =
+    Http.request
+        { method = "PUT"
+        , headers = [ authorizationHeader token ]
+        , url = apiUrl ++ "/" ++ id
+        , body =
+            case company.logo of
+                Nothing ->
+                    Http.multipartBody
+                        [ Http.stringPart "name" (ValidationInput.get company.name)
+                        , Maybe.withDefault
+                            (Http.stringPart "files" "null")
+                            (company.logo
+                                |> Maybe.andThen leftToMaybe
+                                |> Maybe.map (FileReader.filePart "files")
+                            )
+                        , Http.stringPart "street" (ValidationInput.get company.adress.street)
+                        , Http.stringPart "postCode" (ValidationInput.get company.adress.postCode)
+                        , Http.stringPart "houseNr" (ValidationInput.get company.adress.houseNr)
+                        , Http.stringPart "domicile" (ValidationInput.get company.adress.domicile)
+                        ]
+
+                Just image ->
+                    case image of
+                        Right url ->
+                            Http.multipartBody
+                                [ Http.stringPart "name" (ValidationInput.get company.name)
+                                , Http.stringPart "street" (ValidationInput.get company.adress.street)
+                                , Http.stringPart "logoUrl" url
+                                , Http.stringPart "postCode" (ValidationInput.get company.adress.postCode)
+                                , Http.stringPart "houseNr" (ValidationInput.get company.adress.houseNr)
+                                , Http.stringPart "domicile" (ValidationInput.get company.adress.domicile)
+                                ]
+
+                        Left file ->
+                            Http.multipartBody
+                                [ Http.stringPart "name" (ValidationInput.get company.name)
+                                , FileReader.filePart "files" file
+                                , Http.stringPart "street" (ValidationInput.get company.adress.street)
+                                , Http.stringPart "postCode" (ValidationInput.get company.adress.postCode)
+                                , Http.stringPart "houseNr" (ValidationInput.get company.adress.houseNr)
+                                , Http.stringPart "domicile" (ValidationInput.get company.adress.domicile)
+                                ]
         , expect = Http.expectJson companyDecoder
         , timeout = Nothing
         , withCredentials = False
@@ -89,6 +139,12 @@ removeCompanyRequest token id =
 createCompany : Token -> Company -> Cmd (WebData Company)
 createCompany token company =
     createCompanyRequest token company
+        |> RemoteData.sendRequest
+
+
+updateCompany : String -> Token -> Company -> Cmd (WebData Company)
+updateCompany id token company =
+    updateCompanyRequest token id company
         |> RemoteData.sendRequest
 
 

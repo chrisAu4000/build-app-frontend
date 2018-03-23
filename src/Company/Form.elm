@@ -3,7 +3,7 @@ module Company.Form exposing (..)
 import Adress.Form as AdressForm
 import Auth.Model exposing (Token)
 import Company.Model as Company exposing (Company, CompanyId, ImageSrc, Logo)
-import Company.Request exposing (createCompany, fetchCompany)
+import Company.Request as Request exposing (createCompany, fetchCompany)
 import Company.Validation exposing (validateCompany)
 import Component.Button exposing (submitBtnFailure, submitBtnLoading, submitBtnNotAsked, submitBtnSuccess)
 import Component.Form exposing (centeredForm)
@@ -15,6 +15,7 @@ import Html exposing (Attribute, Html, div, form, img, input, text)
 import Html.Attributes exposing (accept, class, id, src, type_, value)
 import Html.Events exposing (onSubmit)
 import Json.Decode as Decode
+import Navigation exposing (newUrl)
 import RemoteData exposing (RemoteData(..), WebData)
 import Task
 
@@ -121,10 +122,27 @@ update msg model =
             ( updateCompany (\c -> { c | adress = subModel }) model, subMsg |> Cmd.map AdressFormMsg )
 
         Submit company ->
-            ( updateCompany validateCompany model, createCompany model.token company |> Cmd.map OnSubmit )
+            let
+                action =
+                    case company.id of
+                        Nothing ->
+                            createCompany
+
+                        Just id ->
+                            Request.updateCompany id
+            in
+            ( updateCompany validateCompany model, action model.token company |> Cmd.map OnSubmit )
 
         OnSubmit request ->
-            ( { model | request = request, company = Company.empty }, Cmd.none )
+            case request of
+                Failure error ->
+                    ( model, Cmd.none )
+
+                Success company ->
+                    ( { model | request = request, company = company }, newUrl "#/home" )
+
+                _ ->
+                    ( model, Cmd.none )
 
 
 emptyImage : Html Msg
@@ -161,7 +179,7 @@ renderImg logo imgSrc =
                             emptyImage
 
                         Right url ->
-                            image url
+                            image ("http://localhost:1337" ++ url)
 
 
 renderSubmitButton : Request -> Html Msg
@@ -174,7 +192,7 @@ renderSubmitButton request =
             submitBtnLoading ""
 
         Failure error ->
-            submitBtnLoading (toString error)
+            submitBtnFailure (toString error)
 
         Success _ ->
             submitBtnSuccess "Company was added"
