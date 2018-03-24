@@ -7,6 +7,7 @@ import Json.Decode as Decode exposing (Value)
 import Navigation exposing (Location)
 import Page.AddCompany as AddCompanyPage
 import Page.AddPosition as AddPositionPage
+import Page.Company as CompanyPage
 import Page.Home as HomePage
 import Page.Login as LoginPage
 import Page.NotFound as NotFoundPage
@@ -21,6 +22,7 @@ type Page
     | Registration RegistrationPage.Model
     | Home HomePage.Model
     | AddCompany AddCompanyPage.Model
+    | Company CompanyPage.Model
     | AddPosition AddPositionPage.Model
 
 
@@ -44,6 +46,7 @@ type Msg
     | RegistrationMsg RegistrationPage.Msg
     | HomeMsg HomePage.Msg
     | AddCompanyMsg AddCompanyPage.Msg
+    | CompanyMsg CompanyPage.Msg
     | AddPositionMsg AddPositionPage.Msg
 
 
@@ -104,7 +107,7 @@ pageFromLocation model location =
                             in
                             ( Home model, Cmd.map HomeMsg msg )
 
-                Routing.Company ->
+                Routing.AddCompany ->
                     case model.auth of
                         Nothing ->
                             let
@@ -135,6 +138,22 @@ pageFromLocation model location =
                                     AddCompanyPage.init user (Just companyId)
                             in
                             ( AddCompany model, Cmd.map AddCompanyMsg msg )
+
+                Routing.Company companyId ->
+                    case model.auth of
+                        Nothing ->
+                            let
+                                ( model, msg ) =
+                                    LoginPage.init
+                            in
+                            ( Login model, Cmd.map LoginMsg msg )
+
+                        Just user ->
+                            let
+                                ( model, msg ) =
+                                    CompanyPage.init user.jwt (Just companyId)
+                            in
+                            ( Company model, Cmd.map CompanyMsg msg )
 
         Nothing ->
             ( NotFound NotFoundPage.initialModel, Cmd.none )
@@ -241,6 +260,10 @@ view model =
         AddCompany submod ->
             privateNavigation user (AddCompanyPage.view submod)
                 |> Html.map AddCompanyMsg
+
+        Company submod ->
+            privateNavigation user (CompanyPage.view submod)
+                |> Html.map CompanyMsg
 
         AddPosition submod ->
             AddPositionPage.view submod

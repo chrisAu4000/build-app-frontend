@@ -8,8 +8,9 @@ type Route
     | Login
     | Registration
     | Home
-    | Company
+    | AddCompany
     | EditCompany String
+    | Company String
     | AddPosition
 
 
@@ -20,8 +21,9 @@ matchers =
         , UrlParser.map Login (s "login")
         , UrlParser.map Registration (s "registration")
         , UrlParser.map Home (s "home")
-        , UrlParser.map Company (s "company")
+        , UrlParser.map AddCompany (s "company")
         , UrlParser.map EditCompany (s "companyEdit" </> string)
+        , UrlParser.map Company (s "company" </> string)
         , UrlParser.map AddPosition (s "position")
         ]
 
