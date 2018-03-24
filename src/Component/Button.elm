@@ -1,7 +1,7 @@
 module Component.Button exposing (..)
 
 import Component.Icon as Icon exposing (Icon, icon)
-import Html exposing (Attribute, Html, a, button, div, i, text)
+import Html exposing (Attribute, Html, a, button, div, i, span, text)
 import Html.Attributes exposing (class, href, type_)
 import Html.Events exposing (onClick)
 
@@ -74,13 +74,14 @@ successBtn link =
 
 listHeaderBtn : ( Icon, String ) -> Html msg
 listHeaderBtn ( icn, url ) =
-    div
-        [ class "col col-4 pr2" ]
-        [ a
-            [ class "btn regular h2"
-            , href url
+    a
+        [ class "header-btn btn regular border"
+        , href url
+        ]
+        [ span []
+            [ i [ class ("mr1 " ++ icon icn) ] []
+            , text "Add a Company"
             ]
-            [ i [ class (icon icn) ] [] ]
         ]
 
 

@@ -42,7 +42,7 @@ icon icn =
             ""
 
         Plus ->
-            "fa fa-plus white"
+            "fa fa-plus"
 
         X ->
             "fa fa-close"

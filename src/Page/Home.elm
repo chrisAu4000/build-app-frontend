@@ -10,13 +10,13 @@ import RemoteData exposing (WebData)
 
 type alias Model =
     { auth : Auth
-    , companyList : CompanyGrid.Model
+    , companyGrid : CompanyGrid.Model
     , listEmpty : Bool
     }
 
 
 type Msg
-    = CompanyListMsg CompanyGrid.Msg
+    = CompanyGridMsg CompanyGrid.Msg
 
 
 init : Auth -> ( Model, Cmd Msg )
@@ -25,24 +25,24 @@ init auth =
         ( subMod, subCmd ) =
             CompanyGrid.init auth.jwt
     in
-    ( { auth = auth, companyList = subMod, listEmpty = False }
-    , subCmd |> Cmd.map CompanyListMsg
+    ( { auth = auth, companyGrid = subMod, listEmpty = False }
+    , subCmd |> Cmd.map CompanyGridMsg
     )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        CompanyListMsg subMsg ->
+        CompanyGridMsg subMsg ->
             let
                 ( newModel, cmd ) =
-                    CompanyGrid.update subMsg model.companyList
+                    CompanyGrid.update subMsg model.companyGrid
 
                 listEmpty =
-                    companyListEmpty newModel.companies
+                    companyGridEmpty newModel.companies
             in
-            ( { model | companyList = newModel, listEmpty = listEmpty }
-            , cmd |> Cmd.map CompanyListMsg
+            ( { model | companyGrid = newModel, listEmpty = listEmpty }
+            , cmd |> Cmd.map CompanyGridMsg
             )
 
 
@@ -50,7 +50,7 @@ view : Model -> Html Msg
 view model =
     let
         companyList =
-            CompanyGrid.view model.companyList |> Html.map CompanyListMsg
+            CompanyGrid.view model.companyGrid |> Html.map CompanyGridMsg
     in
     div
         [ class "clearfix page m2 flex flex-column mx-auto s-col-12 md-col-11 lg-col-9" ]
@@ -83,8 +83,8 @@ jumbotron =
         ]
 
 
-companyListEmpty : WebData (List a) -> Bool
-companyListEmpty webData =
+companyGridEmpty : WebData (List a) -> Bool
+companyGridEmpty webData =
     case webData of
         RemoteData.Success list ->
             List.length list == 0

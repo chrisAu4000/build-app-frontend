@@ -6,11 +6,12 @@ import Company.Request exposing (fetchCompanies, removeCompany)
 import Component.Button exposing (deleteBtn, editBtn, listHeaderBtn)
 import Component.Icon as Icon
 import Component.Loader exposing (load)
+import Component.SearchInput exposing (searchInput)
 import Data.ValidationInput exposing (get)
 import Either exposing (rightToMaybe)
-import Html exposing (Html, a, br, button, div, i, img, text)
-import Html.Attributes exposing (class, href, src, style)
-import Html.Events exposing (onClick)
+import Html exposing (Attribute, Html, a, br, button, div, i, img, input, text)
+import Html.Attributes exposing (class, href, src, style, type_)
+import Html.Events exposing (onClick, onInput)
 import Navigation
 import RemoteData exposing (WebData)
 
@@ -23,9 +24,14 @@ type alias Companies =
     WebData (List ( DisclaymerShown, Company ))
 
 
+type alias Filter =
+    List ( DisclaymerShown, Company ) -> List ( DisclaymerShown, Company )
+
+
 type alias Model =
     { token : Token
     , companies : Companies
+    , filter : Filter
     }
 
 
@@ -36,11 +42,15 @@ type Msg
     | Remove CompanyId
     | OnRemove (WebData Company)
     | GotoEditCompany CompanyId
+    | FilterCompanies String
 
 
 init : Token -> ( Model, Cmd Msg )
 init token =
-    ( { token = token, companies = RemoteData.Loading }
+    ( { token = token
+      , companies = RemoteData.Loading
+      , filter = identity
+      }
     , fetchCompanies token
         |> Cmd.map (RemoteData.map (List.map (\c -> ( False, c ))))
         |> Cmd.map OnFetch
@@ -52,14 +62,37 @@ remove id =
     RemoteData.map (List.filter (not << (==) id << .id << Tuple.second))
 
 
-companiesMap : (( Bool, Company ) -> ( Bool, Company )) -> Companies -> Companies
+companiesMap : (( DisclaymerShown, Company ) -> ( DisclaymerShown, Company )) -> Companies -> Companies
 companiesMap f =
     RemoteData.map (List.map f)
 
 
-isEqual : a -> a -> Bool
-isEqual a b =
-    a == b
+companiesFilter : String -> Filter
+companiesFilter query =
+    List.filter
+        ((Tuple.second >> .name >> get)
+            >> String.left (String.length query)
+            >> (==) query
+        )
+
+
+setRemoveDisclaymer : DisclaymerShown -> String -> ( DisclaymerShown, Company ) -> ( DisclaymerShown, Company )
+setRemoveDisclaymer showen companyId1 company2 =
+    let
+        isShowen =
+            company2
+                |> (.id << Tuple.second)
+                |> Maybe.map ((==) companyId1)
+                |> Maybe.withDefault False
+    in
+    ( isShowen, Tuple.second company2 )
+
+
+showRemoveDisclaymer : CompanyId -> Companies -> Companies
+showRemoveDisclaymer companyId companies =
+    Maybe.map (setRemoveDisclaymer True) companyId
+        |> Maybe.map (\f -> companiesMap f companies)
+        |> Maybe.withDefault companies
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -69,34 +102,7 @@ update msg model =
             ( { model | companies = companies }, Cmd.none )
 
         ShowRemoveDisclaymer companyId ->
-            case ( companyId, model.companies ) of
-                ( Just companyId, RemoteData.Success companies ) ->
-                    let
-                        equalIds =
-                            isEqual companyId
-
-                        newCompanies =
-                            List.map
-                                (\( _, com ) ->
-                                    case com.id of
-                                        Nothing ->
-                                            ( False, com )
-
-                                        Just companyId ->
-                                            if equalIds companyId then
-                                                ( True, com )
-                                            else
-                                                ( False, com )
-                                )
-                                companies
-                    in
-                    ( { model | companies = RemoteData.Success newCompanies }, Cmd.none )
-
-                ( _, RemoteData.Failure error ) ->
-                    ( model, Cmd.none )
-
-                _ ->
-                    ( model, Cmd.none )
+            ( { model | companies = showRemoveDisclaymer companyId model.companies }, Cmd.none )
 
         RemoveDisclaymers ->
             let
@@ -127,10 +133,6 @@ update msg model =
                     ( model, Cmd.none )
 
                 RemoteData.Success company ->
-                    let
-                        _ =
-                            Debug.log "SUCCES" (toString company)
-                    in
                     ( { model | companies = remove company.id model.companies }, Cmd.none )
 
                 RemoteData.NotAsked ->
@@ -143,6 +145,9 @@ update msg model =
 
                 Just id ->
                     ( model, Navigation.newUrl ("#/companyEdit/" ++ id) )
+
+        FilterCompanies query ->
+            ( { model | filter = companiesFilter query }, Cmd.none )
 
 
 removeOverlay : Company -> List (Html Msg)
@@ -218,22 +223,25 @@ gridItem ( showsDisclaymer, company ) =
                 ++ overlay
             )
         , div
-            [ class ("company-button-bar overflow-hidden height-0" ++ disclaymer) ]
-            [ button
-                [ class "btn circle border"
-                , onClick (GotoEditCompany company.id)
-                ]
-                [ i
-                    [ class "icon fa fa-pencil-square-o" ]
-                    []
-                ]
-            , button
-                [ class "btn circle border"
-                , onClick (ShowRemoveDisclaymer company.id)
-                ]
-                [ i
-                    [ class "icon fa fa-trash-o" ]
-                    []
+            [ class ("company-button-bar relative overflow-hidden height-0" ++ disclaymer) ]
+            [ div
+                [ class "blur" ]
+                [ button
+                    [ class "btn circle border"
+                    , onClick (GotoEditCompany company.id)
+                    ]
+                    [ i
+                        [ class "icon fa fa-pencil-square-o" ]
+                        []
+                    ]
+                , button
+                    [ class "btn circle border"
+                    , onClick (ShowRemoveDisclaymer company.id)
+                    ]
+                    [ i
+                        [ class "icon fa fa-trash-o" ]
+                        []
+                    ]
                 ]
             ]
         , div
@@ -245,24 +253,8 @@ gridItem ( showsDisclaymer, company ) =
         ]
 
 
-
--- [ button
---         ([ class ("btn circle wizard-button blue" ++ leftButtonClasses) ] ++ leftButtonAction)
---         [ i
---           [ class "icon fa fa-arrow-circle-o-left fa-4x"]
---           []
---         ]
---       , button
---         ([ class ("btn circle wizard-button right green" ++ rightButtonClasses) ] ++ rightButtonAction)
---         [ i
---           [ class "icon fa fa-check-circle-o fa-4x"]
---           []
---         ]
---       ]
-
-
-grid : Companies -> List (Html Msg)
-grid companies =
+grid : Filter -> Companies -> List (Html Msg)
+grid filterFn companies =
     case companies of
         RemoteData.Loading ->
             [ load ]
@@ -271,7 +263,9 @@ grid companies =
             [ text (toString err) ]
 
         RemoteData.Success cms ->
-            List.map gridItem cms
+            cms
+                |> filterFn
+                |> List.map gridItem
 
         RemoteData.NotAsked ->
             [ text "" ]
@@ -282,12 +276,14 @@ view model =
     div
         [ class "clearfix m2" ]
         [ div
-            [ class "clearfix button-bar" ]
-            [ listHeaderBtn ( Icon.Plus, "#/company" ) ]
+            [ class "clearfix mb2 flex" ]
+            [ listHeaderBtn ( Icon.Plus, "#/company" )
+            , searchInput FilterCompanies
+            ]
         , div
-            [ class "max-width-5 mx-auto" ]
+            [ class "mx-auto" ]
             [ div
                 [ class "clearfix grid" ]
-                (grid model.companies)
+                (grid model.filter model.companies)
             ]
         ]
